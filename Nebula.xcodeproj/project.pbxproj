@@ -13,6 +13,7 @@
 		3E4A19501C8F1948006032BC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3E4A194F1C8F1948006032BC /* Assets.xcassets */; };
 		3E4A19531C8F1948006032BC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3E4A19511C8F1948006032BC /* LaunchScreen.storyboard */; };
 		3E4A195B1C8F1972006032BC /* NebulaShader.cikernel in Resources */ = {isa = PBXBuildFile; fileRef = 3E4A195A1C8F1972006032BC /* NebulaShader.cikernel */; };
+		3E4A195D1C8F1B9E006032BC /* IMG_0195.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3E4A195C1C8F1B9E006032BC /* IMG_0195.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		3E4A19521C8F1948006032BC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3E4A19541C8F1948006032BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3E4A195A1C8F1972006032BC /* NebulaShader.cikernel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NebulaShader.cikernel; sourceTree = "<group>"; };
+		3E4A195C1C8F1B9E006032BC /* IMG_0195.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_0195.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 			children = (
 				3E4A19481C8F1948006032BC /* AppDelegate.swift */,
 				3E4A194A1C8F1948006032BC /* ViewController.swift */,
+				3E4A195C1C8F1B9E006032BC /* IMG_0195.jpg */,
 				3E4A194C1C8F1948006032BC /* Main.storyboard */,
 				3E4A194F1C8F1948006032BC /* Assets.xcassets */,
 				3E4A19511C8F1948006032BC /* LaunchScreen.storyboard */,
@@ -126,6 +129,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3E4A19531C8F1948006032BC /* LaunchScreen.storyboard in Resources */,
+				3E4A195D1C8F1B9E006032BC /* IMG_0195.jpg in Resources */,
 				3E4A19501C8F1948006032BC /* Assets.xcassets in Resources */,
 				3E4A195B1C8F1972006032BC /* NebulaShader.cikernel in Resources */,
 				3E4A194E1C8F1948006032BC /* Main.storyboard in Resources */,
