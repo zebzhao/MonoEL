@@ -66,8 +66,7 @@ class ViewController: UIViewController
         
         let arguments = [time, touchPosition, resolution]
         
-        
-        let image = nebulaKernel.applyWithExtent(view.bounds, roiCallback:  {(index, rect) in return rect}, arguments: arguments)
+        let image = nebulaKernel.applyWithExtent(view.bounds, arguments: arguments)
         
         imageView.image = image
     }
