@@ -9,175 +9,141 @@
 //
 // Based on http://glslsandbox.com/e#31308.0
 
+import Metal
+import MetalKit
+import MetalPerformanceShaders
 import UIKit
-import GLKit
 
 class ViewController: UIViewController
 {
+    let scaleFactor: CGFloat = 6
     var time: CGFloat = 1
+    var resolution = CIVector(x: 0, y: 0)
     var touchPosition = CIVector(x: 0, y: 0)
     
-    let imageView = OpenGLImageView()
+    let imageView = MetalImageView()
     
     lazy var nebulaKernel: CIColorKernel =
-    {
-        let nebulaShaderPath = NSBundle.mainBundle().pathForResource("NebulaShader", ofType: "cikernel")
-        
-        guard let path = nebulaShaderPath,
-            code = try? String(contentsOfFile: path),
-            kernel = CIColorKernel(string: code) else
         {
-            fatalError("Unable to build nebula shader")
-        }
-        
-        return kernel
+            let url = Bundle.main.url(forResource: "default", withExtension: "metallib")!
+            let data = try! Data(contentsOf: url)
+            let kernel = try! CIColorKernel(functionName: "nebulaKernel", fromMetalLibraryData: data)
+            return kernel
     }()
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
+        viewDidLayoutSubviews()
+        
+        view.transform = CGAffineTransform.identity.scaledBy(x: scaleFactor, y: scaleFactor)
+//        view.contentScaleFactor = 1.0
+//        imageView.transform = CGAffineTransform.identity.scaledBy(x: 4, y: 4)
+//        imageView.contentScaleFactor = 1.0
         view.addSubview(imageView)
         
-        let displayLink = CADisplayLink(target: self, selector: Selector("step"))
-        displayLink.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
-    }
-    
-    // MARK: Touch Handling
-    
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?)
-    {
-        guard let locationInView = touches.first?.locationInView(view) else
-        {
-            return
-        }
-        
-        touchPosition = CIVector(x: view.frame.height / 2 - locationInView.y,
-            y: view.frame.width / 2 - locationInView.x)
+        let displayLink = CADisplayLink(target: self, selector: #selector(step))
+        displayLink.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
     
     // MARK: Step
     
-    func step()
+    @objc func step()
     {
         time += 0.01
         
-        let resolution = CIVector(x: view.frame.width, y: view.frame.height)
+        let arguments = [time, touchPosition, resolution] as [Any]
         
-        let arguments = [time, touchPosition, resolution]
-        
-        let image = nebulaKernel.applyWithExtent(view.bounds, arguments: arguments)
+        let image = nebulaKernel.apply(extent: view.bounds, arguments: arguments)
         
         imageView.image = image
     }
     
     override func viewDidLayoutSubviews()
     {
+        resolution = CIVector(x: view.frame.width/scaleFactor, y: view.frame.height/scaleFactor)
         imageView.frame = view.bounds
-    }
-    
-    override func prefersStatusBarHidden() -> Bool
-    {
-        return true
     }
 }
 
+
 // -----
 
-class OpenGLImageView: GLKView
+class MetalImageView: MTKView
 {
-    let eaglContext = EAGLContext(API: .OpenGLES2)
+    let colorSpace = CGColorSpaceCreateDeviceRGB()
     
-    lazy var ciContext: CIContext =
-    {
-        [unowned self] in
-        
-        return CIContext(EAGLContext: self.eaglContext,
-            options: [kCIContextWorkingColorSpace: NSNull()])
-        }()
+    var commandQueue: MTLCommandQueue
+    var ciContext: CIContext
     
-    override init(frame: CGRect)
+    override init(frame frameRect: CGRect, device: MTLDevice?)
     {
-        super.init(frame: frame, context: eaglContext)
+        let metalDevice: MTLDevice = device ?? MTLCreateSystemDefaultDevice()!
         
-        context = self.eaglContext
-        delegate = self
+        commandQueue = metalDevice.makeCommandQueue()!
+        ciContext = CIContext(
+            mtlDevice: metalDevice,
+            options: [CIContextOption.outputColorSpace: NSNull(),
+                      CIContextOption.workingColorSpace: NSNull()])
+        
+        super.init(frame: frameRect,
+                   device: metalDevice)
+        
+        if super.device == nil
+        {
+            fatalError("Device doesn't support Metal")
+        }
+        
+        framebufferOnly = false
     }
     
-    override init(frame: CGRect, context: EAGLContext)
-    {
-        fatalError("init(frame:, context:) has not been implemented")
-    }
-    
-    required init?(coder aDecoder: NSCoder)
+    required init(coder: NSCoder)
     {
         fatalError("init(coder:) has not been implemented")
     }
     
     /// The image to display
     var image: CIImage?
-        {
+    {
         didSet
         {
-            setNeedsDisplay()
+            renderImage()
         }
     }
-}
-
-extension OpenGLImageView: GLKViewDelegate
-{
-    func glkView(view: GLKView, drawInRect rect: CGRect)
+    
+    func renderImage()
     {
-        guard let image = image else
+        guard let
+            image = image,
+            let targetTexture = currentDrawable?.texture else
         {
             return
         }
         
-        let targetRect = image.extent.aspectFitInRect(
-            target: CGRect(origin: CGPointZero,
-                size: CGSize(width: drawableWidth,
-                    height: drawableHeight)))
+        let commandBuffer = commandQueue.makeCommandBuffer()
         
-        let ciBackgroundColor = CIColor(
-            color: backgroundColor ?? UIColor.whiteColor())
+        let bounds = CGRect(origin: CGPoint.zero, size: drawableSize)
         
-        ciContext.drawImage(CIImage(color: ciBackgroundColor),
-            inRect: CGRect(x: 0,
-                y: 0,
-                width: drawableWidth,
-                height: drawableHeight),
-            fromRect: CGRect(x: 0,
-                y: 0,
-                width: drawableWidth,
-                height: drawableHeight))
+        let originX = image.extent.origin.x
+        let originY = image.extent.origin.y
         
-        ciContext.drawImage(image,
-            inRect: targetRect,
-            fromRect: image.extent)
-    }
-}
-
-extension CGRect
-{
-    func aspectFitInRect(target target: CGRect) -> CGRect
-    {
-        let scale: CGFloat =
-        {
-            let scale = target.width / self.width
-            
-            return self.height * scale <= target.height ?
-                scale :
-                target.height / self.height
-        }()
+        let scaleX = drawableSize.width / image.extent.width
+        let scaleY = drawableSize.height / image.extent.height
+        let scale = min(scaleX, scaleY)
         
-        let width = self.width * scale
-        let height = self.height * scale
-        let x = target.midX - width / 2
-        let y = target.midY - height / 2
+        let scaledImage = image
+            .transformed(by: CGAffineTransform(translationX: -originX, y: -originY))
+            .transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         
-        return CGRect(x: x,
-            y: y,
-            width: width,
-            height: height)
+        ciContext.render(scaledImage,
+                         to: targetTexture,
+                         commandBuffer: commandBuffer,
+                         bounds: bounds,
+                         colorSpace: colorSpace)
+        
+        commandBuffer!.present(currentDrawable!)
+        
+        commandBuffer!.commit()
     }
 }
