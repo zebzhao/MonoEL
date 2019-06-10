@@ -18,9 +18,9 @@ import aubio
 // call startRecording() to start recording
 final class RecordAudio: NSObject {
     var tempo: OpaquePointer? = nil
+    var pitch: OpaquePointer? = nil
     var samples: UnsafeMutablePointer<fvec_t>? = nil
     let sampleSize: UInt32 = 512
-    let silenceThreshold = 10
     
     var audioUnit:   AudioUnit?     = nil
     
@@ -149,13 +149,14 @@ final class RecordAudio: NSObject {
                 let x = Float(dataArray[i+i  ])   // copy left  channel sample
                 let y = Float(dataArray[i+i+1])   // copy right channel sample
             
-                fvec_set_sample(samples, x*x + y*y, sampleCount)
+                fvec_set_sample(samples, (x + y) * 0.5, sampleCount)
                 sampleCount += 1
+                
                 if sampleCount == sampleSize || i == count/2-1 {
                     aubio_tempo_do(tempo, samples, out)
-                    print(fvec_get_sample(out, 0))
                     if (fvec_get_sample(out, 0) != 0) {
                         // Yay! A BEAT!!!
+//                        print(aubio_tempo_get_bpm(tempo))
                         break
                     }
                     sampleCount = 0
@@ -194,7 +195,7 @@ final class RecordAudio: NSObject {
     private func setupAubio(samplerate: UInt32) {
         samples = new_fvec(sampleSize)
         tempo = new_aubio_tempo("default", 1024, sampleSize, samplerate)
-        aubio_tempo_set_silence(tempo!, smpl_t(silenceThreshold))
+        aubio_tempo_set_silence(tempo!, -52)
     }
     
     private func setupAudioUnit() {

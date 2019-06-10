@@ -10,7 +10,6 @@
 using namespace metal;
 #include <CoreImage/CoreImage.h>
 
-constant int steps = 128;
 constant float3 brf = float3(5.,0.4,0.2);
 constant float3 brf2 = float3(0.033,0.07,0.03);
 constant float3 brf3 = float3(0.005,.045,.075);
@@ -49,7 +48,7 @@ float2 map(float3 p, float iTime, float pColor, float2 bsMo, float pDetail)
     float z = 1.;
     float trk = 1.;
     float dspAmp = 0.1 + pColor*0.2;
-    for(int i = 0; i < 5; i++)
+    for(short i = 0; i < 5; i++)
     {
         p += sin(p.zxy*0.75 + iTime*.8)*dspAmp*trk;
         d -= abs(dot(cos(p), sin(p.yzx))*z);
@@ -57,7 +56,7 @@ float2 map(float3 p, float iTime, float pColor, float2 bsMo, float pDetail)
         trk *= 1.4;
         p = p*m3*pDetail;
     }
-    d = abs(d + pColor*3.)+ pColor*.3 - 2.5 + bsMo.y;
+    d = abs(d + pColor*3.)+ pColor*.3 - 2. + bsMo.y;
     return float2(d + cl*.2 + 0.25, cl);
 }
 
@@ -87,7 +86,7 @@ float4 render(float3 ro, float3 rd, float iTime, float2 bsMo, float pColor, floa
     float fogT = 0.;
 //    float prm1 = smoothstep(-0.4, 0.4,sin(iTime*0.3));
     
-    for(int i=0; i<steps; i++)
+    for(short i=0; i<100; i++)
     {
         if(rez.a > 0.99) break;
         
