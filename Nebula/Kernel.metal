@@ -38,33 +38,33 @@ float2 disp(float t)
     return float2(sin(t*0.22), cos(t*0.175))*2.;
 }
 
-float2 map(float3 p, float iTime, float prm1, float2 bsMo)
+float2 map(float3 p, float iTime, float pColor, float2 bsMo, float pDetail)
 {
     float3 p2 = p;
     p2.xy -= disp(p.z).xy;
-    p.xy = rot(sin(p.z+iTime)*(0.1 + prm1*0.05) + iTime*0.09)*p.xy;
+    p.xy = rot(sin(p.z+iTime)*(0.1 + pColor*0.05) + iTime*0.09)*p.xy;
     float cl = mag2(p2.xy);
     float d = 0.;
     p *= .61;
     float z = 1.;
     float trk = 1.;
-    float dspAmp = 0.1 + prm1*0.2;
+    float dspAmp = 0.1 + pColor*0.2;
     for(int i = 0; i < 5; i++)
     {
-        p += sin(p.zxy*0.75*trk + iTime*trk*.8)*dspAmp;
+        p += sin(p.zxy*0.75 + iTime*.8)*dspAmp*trk;
         d -= abs(dot(cos(p), sin(p.yzx))*z);
         z *= 0.57;
         trk *= 1.4;
-        p = p*m3;
+        p = p*m3*pDetail;
     }
-    d = abs(d + prm1*3.)+ prm1*.3 - 2.5 + bsMo.y;
+    d = abs(d + pColor*3.)+ pColor*.3 - 2.5 + bsMo.y;
     return float2(d + cl*.2 + 0.25, cl);
 }
 
 float getsat(float3 c)
 {
-    float mi = min(min(c.x, c.y), c.z);
-    float ma = max(max(c.x, c.y), c.z);
+    float mi = min3(c.x, c.y, c.z);
+    float ma = max3(c.x, c.y, c.z);
     return (ma - mi)/(ma + 1e-7);
 }
 
@@ -80,37 +80,36 @@ float3 iLerp(float3 a, float3 b, float x)
     return saturate(ic);
 }
 
-float4 render(float3 ro, float3 rd, float iTime, float2 bsMo )
+float4 render(float3 ro, float3 rd, float iTime, float2 bsMo, float pColor, float pDetail )
 {
     float4 rez = float4(0);
     float t = 1.5;
     float fogT = 0.;
-    float prm1 = smoothstep(-0.4, 0.4,sin(iTime*0.3));
+//    float prm1 = smoothstep(-0.4, 0.4,sin(iTime*0.3));
     
     for(int i=0; i<steps; i++)
     {
         if(rez.a > 0.99) break;
         
         float3 pos = ro + t*rd;
-        float2 mpv = map(pos, iTime, prm1, bsMo);
-        float den = saturate(mpv.x-0.3)*1.12;
+        float2 mpv = map(pos, iTime, pColor, bsMo, pDetail);
+        float den = saturate(mpv.x - 0.3)*1.12;
         float dn = clamp((mpv.x + 2.),0.,3.);
-        float den_den_den = den*den*den;
         
         float4 col = float4(0);
         if (mpv.x > 0.6)
         {
             
             col = float4(sin(brf + mpv.y*0.1 +sin(pos.z*0.4)*0.5 + 1.8)*0.5 + 0.5,0.08);
-            col *= den_den_den;
+            col *= den*den*den;
             col.rgb *= linstep(4.,-2.5, mpv.x)*2.3;
-            float dif =  clamp((den - map(pos+.8, iTime, prm1, bsMo).x)/9., 0.001, 1. );
-            dif += clamp((den - map(pos+.35, iTime, prm1, bsMo).x)/2.5, 0.001, 1. );
+            float dif =  clamp((den - map(pos+.8, iTime, pColor, bsMo, pDetail).x)/9., 0.001, 1. );
+            dif += clamp((den - map(pos+.35, iTime, pColor, bsMo, pDetail).x)/2.5, 0.001, 1. );
             col.xyz *= den*(brf3 + 1.5*brf2*dif);
         }
         
         float fogC = exp(t*0.2 - 2.2);
-        col.rgba += brf4*saturate(fogC-fogT);
+        col.rgba += brf4*saturate(fogC - fogT);
         fogT = fogC;
         rez = rez + col*(1. - rez.a);
         t += clamp(0.5 - dn*dn*.05, 0.09, 0.3);
@@ -120,7 +119,14 @@ float4 render(float3 ro, float3 rd, float iTime, float2 bsMo )
 
 extern "C" {
     namespace coreimage {
-        float4 mainImage( float iTime, float2 resolution, float2 fragCoord, float2 mouse )
+        float4 mainImage(float iTime,
+                         float2 resolution,
+                         float2 fragCoord,
+                         float2 mouse,
+                         float pDetail,
+                         float pColor,
+                         float pDodgeHigh,
+                         float pDodgeMid)
         {
             float2 q = fragCoord.xy/resolution.xy;
             float2 p = (fragCoord.xy - 0.5*resolution.xy)/resolution.y;
@@ -129,7 +135,7 @@ extern "C" {
             float time = iTime*3.;
             float3 ro = float3(0,0,time);
             
-            ro += float3(sin(iTime)*0.5,sin(iTime*1.)*0.,0);
+            ro += float3(sin(iTime)*0.5,0.,0.);
             
             float dspAmp = .85;
             ro.xy += disp(ro.z)*dspAmp;
@@ -142,15 +148,15 @@ extern "C" {
             rightdir = normalize(cross(updir, target));
             float3 rd=normalize((p.x*rightdir + p.y*updir)*1. - target);
             rd.xy = rot(-disp(time + 3.5).x*0.2 + bsMo.x)*rd.xy;
-            float4 scn = render(ro, rd, time, bsMo);
+            float4 scn = render(ro, rd, time, bsMo, pColor, pDetail);
             
             float3 col = scn.rgb;
-            float prm1 = smoothstep(-0.4, 0.4,sin(iTime*0.3));
-            col = iLerp(col.bgr, col.rgb, clamp(1.-prm1,0.05,1.));
+            // float prm1 = smoothstep(-0.4, 0.4,sin(iTime*0.3));
+            col = iLerp(col.bgr, col.rgb, clamp(1.-pColor,0.05,1.));
             
-            col = pow(col, float3(.55,0.65,0.6))*float3(1.,.97,.9);
+            col = pDodgeMid*pow(col, float3(.55,0.65,0.6))*float3(1.,.97,.9);
             
-            col = (pow( 16.0*q.x*q.y*(1.0-q.x)*(1.0-q.y), 0.12)*0.7+0.3)*col; //Vign
+            col = pDodgeHigh*(pow( 16.0*q.x*q.y*(1.0-q.x)*(1.0-q.y), 0.12)*0.7+0.3)*col; //Vign
             
             return float4( col[0], col[1], col[2], 1.0 );
         }
@@ -160,9 +166,13 @@ extern "C" {
                             float time,
                             float2 mouse,
                             float2 resolution,
+                            float pDetail,
+                            float pColor,
+                            float pDodgeHigh,
+                            float pDodgeMid,
                             destination dest)
         {
-            return mainImage(time, resolution, dest.coord().xy, float2(0.));
+            return mainImage(time, resolution, dest.coord().xy, float2(0.), pDetail, pColor, pDodgeHigh, pDodgeMid);
         }
     }
 }

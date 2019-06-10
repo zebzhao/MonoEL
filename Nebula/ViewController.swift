@@ -22,6 +22,7 @@ class ViewController: UIViewController
     var touchPosition = CIVector(x: 0, y: 0)
     
     let imageView = MetalImageView()
+    let recordAudio = RecordAudio()
     
     lazy var nebulaKernel: CIColorKernel =
         {
@@ -38,13 +39,13 @@ class ViewController: UIViewController
         viewDidLayoutSubviews()
         
         view.transform = CGAffineTransform.identity.scaledBy(x: scaleFactor, y: scaleFactor)
-//        view.contentScaleFactor = 1.0
-//        imageView.transform = CGAffineTransform.identity.scaledBy(x: 4, y: 4)
-//        imageView.contentScaleFactor = 1.0
         view.addSubview(imageView)
         
         let displayLink = CADisplayLink(target: self, selector: #selector(step))
+//        displayLink.preferredFramesPerSecond = 30
         displayLink.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
+        
+        recordAudio.startRecording()
     }
     
     // MARK: Step
@@ -53,7 +54,7 @@ class ViewController: UIViewController
     {
         time += 0.01
         
-        let arguments = [time, touchPosition, resolution] as [Any]
+        let arguments = [time, touchPosition, resolution, 1.0, 1.0, 1.0, 1.0] as [Any]
         
         let image = nebulaKernel.apply(extent: view.bounds, arguments: arguments)
         
@@ -121,7 +122,7 @@ class MetalImageView: MTKView
             return
         }
         
-        let commandBuffer = commandQueue.makeCommandBuffer()
+        let commandBuffer = commandQueue.makeCommandBuffer()!
         
         let bounds = CGRect(origin: CGPoint.zero, size: drawableSize)
         
@@ -142,8 +143,8 @@ class MetalImageView: MTKView
                          bounds: bounds,
                          colorSpace: colorSpace)
         
-        commandBuffer!.present(currentDrawable!)
+        commandBuffer.present(currentDrawable!)
         
-        commandBuffer!.commit()
+        commandBuffer.commit()
     }
 }
