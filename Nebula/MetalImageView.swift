@@ -5,18 +5,24 @@ class MetalImageView: MTKView
 {
     let colorSpace = CGColorSpaceCreateDeviceRGB()
     
-    var commandQueue: MTLCommandQueue
-    var ciContext: CIContext
+    static var commandQueue: MTLCommandQueue?
+    
+    static var ciContext: CIContext?
     
     required init(coder: NSCoder)
     {
         let metalDevice: MTLDevice = MTLCreateSystemDefaultDevice()!
         
-        commandQueue = metalDevice.makeCommandQueue()!
-        ciContext = CIContext(
-            mtlDevice: metalDevice,
-            options: [CIContextOption.outputColorSpace: NSNull(),
-                      CIContextOption.workingColorSpace: NSNull()])
+        if MetalImageView.commandQueue == nil {
+            MetalImageView.commandQueue = metalDevice.makeCommandQueue()
+        }
+        
+        if MetalImageView.ciContext == nil {
+            MetalImageView.ciContext = CIContext(
+                mtlDevice: metalDevice,
+                options: [CIContextOption.outputColorSpace: NSNull(),
+                          CIContextOption.workingColorSpace: NSNull()])
+        }
         
         super.init(coder: coder)
         
@@ -35,7 +41,9 @@ class MetalImageView: MTKView
     {
         didSet
         {
-            renderImage()
+            autoreleasepool {
+                renderImage()
+            }
         }
     }
     
@@ -48,7 +56,7 @@ class MetalImageView: MTKView
             return
         }
         
-        let commandBuffer = commandQueue.makeCommandBuffer()!
+        let commandBuffer = MetalImageView.commandQueue!.makeCommandBuffer()!
         
         let bounds = CGRect(origin: CGPoint.zero, size: drawableSize)
         
@@ -63,7 +71,7 @@ class MetalImageView: MTKView
             .transformed(by: CGAffineTransform(translationX: -originX, y: -originY))
             .transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         
-        ciContext.render(scaledImage,
+        MetalImageView.ciContext!.render(scaledImage,
                          to: targetTexture,
                          commandBuffer: commandBuffer,
                          bounds: bounds,

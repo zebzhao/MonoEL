@@ -3,7 +3,6 @@
 //  Nebula
 //
 //  Created by Zeb Zhao on 6/3/19.
-//  Copyright © 2019 Simon Gladman. All rights reserved.
 //
 
 #include <metal_stdlib>
@@ -116,17 +115,94 @@ float4 render(float3 ro, float3 rd, float iTime, float2 bsMo, float pColor, floa
     return saturate(rez);
 }
 
+// ---
+
+constant float TAU = 3.1415926535*2.0;
+constant float PEAKS = 12.0;
+constant float BRIGHTNESS = 0.05;
+constant float4 R = float4(0.22487037, 0.68850972, 0.22487037, 0.8256673);
+constant float4 G = float4(0.54558713, 0.37599467, 0.54558713, 0.34957688);
+constant float4 B = float4(0.8256673, 0.34957688, 0.8256673, 0.44279738);
+
+float mod(float x, float y) {
+    return x - floor(x/y)*y;
+}
+
 extern "C" {
     namespace coreimage {
-        float4 mainImage(float iTime,
-                         float2 resolution,
-                         float2 fragCoord,
-                         float2 mouse,
-                         float pDetail,
-                         float pColor,
-                         float pDodgeHigh,
-                         float pDodgeMid)
+        float4 wheelShader(
+                           float iTime,
+                           float2 resolution,
+                           float4 pitchRange1,
+                           float4 pitchRange2,
+                           float4 pitchRange3,
+                           destination dest)
         {
+            float2 fragCoord = dest.coord().xy;
+            float2 p = (2.0*fragCoord.xy-resolution.xy)/resolution.y;
+            float a = atan2(p.y, p.x)/TAU;
+            float d = 2.0*length(p);
+            
+            //get the color
+            int2 indices = int2(mod(4.0*a, 4.0), mod(4.0*a + 1.0, 4.0));
+            float3 color = mix(float3(R[indices[0]], G[indices[0]], B[indices[0]]),
+                               float3(R[indices[1]], G[indices[1]], B[indices[1]]), fract(4.0*a));
+            // draw color beam
+            short ia = short(12.0*(a + 0.5)) % 12;
+            float pitchStr;
+            if (ia > 7) {
+                pitchStr = pitchRange3[ia];
+            }
+            else if (ia > 3) {
+                pitchStr = pitchRange2[ia];
+            }
+            else {
+                pitchStr = pitchRange1[ia];
+            }
+            float beamWidth = (1.0 + clamp(pitchStr, 0.0, 0.6)*sin(TAU*a*PEAKS)) * BRIGHTNESS / abs(d - 1.0);
+            float3 circleCol = color*float3(beamWidth);
+            
+            // Normalized pixel coordinates (from 0 to 1)
+            float2 uv = fragCoord/resolution.xy;
+            // move image right, flip left horizontally
+            if (uv.x < .5){
+                uv.x = -uv.x+.5;
+            } else {
+                uv.x = uv.x-.5;
+            }
+            // Apply FFT
+            float distFromMid = pow(abs(.5-uv.y), 1.2);
+            float edge = resolution.y/resolution.x/4.0;
+            float scl = step(edge, uv.x);
+            uv.x = saturate(uv.x - edge);
+            float lineStr;
+            short ix = int(uv.x*12.0);
+            if (ia > 7) {
+                lineStr = pitchRange3[ix];
+            }
+            else if (ia > 3) {
+                lineStr = pitchRange2[ix];
+            }
+            else {
+                lineStr = pitchRange1[ix];
+            }
+            lineStr = clamp(lineStr*abs(sin(6*TAU*uv.x)), 0.1, 1.0);
+            float3 lineCol = color*0.002*lineStr*scl/distFromMid;
+            // Output to screen
+            return float4(circleCol + lineCol, 1.0);
+        }
+        
+        float4 cloudsShader(
+                      float iTime,
+                      float2 mouse,
+                      float2 resolution,
+                      float pDetail,
+                      float pColor,
+                      float pDodgeHigh,
+                      float pDodgeMid,
+                      destination dest)
+        {
+            float2 fragCoord = dest.coord().xy;
             float2 q = fragCoord.xy/resolution.xy;
             float2 p = (fragCoord.xy - 0.5*resolution.xy)/resolution.y;
             float2 bsMo = (mouse.xy - 0.5*resolution.xy)/resolution.y;
@@ -150,7 +226,7 @@ extern "C" {
             float4 scn = render(ro, rd, time, bsMo, pColor, pDetail);
             
             float3 col = scn.rgb;
-            // float prm1 = smoothstep(-0.4, 0.4,sin(iTime*0.3));
+            
             col = iLerp(col.bgr, col.rgb, clamp(1.-pColor,0.05,1.));
             
             col = pDodgeMid*pow(col, float3(.55,0.65,0.6))*float3(1.,.97,.9);
@@ -158,20 +234,6 @@ extern "C" {
             col = pDodgeHigh*(pow( 16.0*q.x*q.y*(1.0-q.x)*(1.0-q.y), 0.12)*0.7+0.3)*col; //Vign
             
             return float4( col[0], col[1], col[2], 1.0 );
-        }
-        // --------[ Original ShaderToy ends here ]---------- //
-
-        float4 nebulaKernel(
-                            float time,
-                            float2 mouse,
-                            float2 resolution,
-                            float pDetail,
-                            float pColor,
-                            float pDodgeHigh,
-                            float pDodgeMid,
-                            destination dest)
-        {
-            return mainImage(time, resolution, dest.coord().xy, float2(0.), pDetail, pColor, pDodgeHigh, pDodgeMid);
         }
     }
 }

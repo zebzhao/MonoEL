@@ -20,8 +20,11 @@ final class RecordAudio: NSObject {
     var tempo: OpaquePointer? = nil
     var pitch: OpaquePointer? = nil
     var samples: UnsafeMutablePointer<fvec_t>? = nil
-    let sampleSize: UInt32 = 512
+    let hopSize: UInt32 = 128
     
+    let rememberingFactor: CGFloat = 0.98
+    var bpmBuffer = 0
+    var pitchBuffer = ContiguousArray<CGFloat>(repeating: 0.0, count: 12)
     var audioUnit:   AudioUnit?     = nil
     
     var micPermission   =  false
@@ -37,6 +40,7 @@ final class RecordAudio: NSObject {
     private var hwSRate = 48000.0   // guess of device hardware sample rate
     private var micPermissionDispatchToken = 0
     private var interrupted = false     // for restart from audio interruption notification
+    
     func startRecording() {
         if isRecording { return }
         
@@ -134,8 +138,8 @@ final class RecordAudio: NSObject {
     }
     
     func processMicrophoneBuffer(inputDataList : UnsafeMutablePointer<AudioBufferList>, frameCount : UInt32) {
-        guard let samples = samples, let tempo = tempo else { return }
-        let out = new_fvec(2)
+        guard let samples = samples, let tempo = tempo, let pitch = pitch else { return }
+        let out = new_fvec(1)
         let count = Int(frameCount)
         var sampleCount: UInt32 = 0
         
@@ -152,13 +156,26 @@ final class RecordAudio: NSObject {
                 fvec_set_sample(samples, (x + y) * 0.5, sampleCount)
                 sampleCount += 1
                 
-                if sampleCount == sampleSize || i == count/2-1 {
+                if sampleCount == hopSize || i == count/2-1 {
                     aubio_tempo_do(tempo, samples, out)
                     if (fvec_get_sample(out, 0) != 0) {
                         // Yay! A BEAT!!!
 //                        print(aubio_tempo_get_bpm(tempo))
-                        break
                     }
+                    
+                    aubio_pitch_do(pitch, samples, out)
+                    let pitchConfidence = CGFloat(aubio_pitch_get_confidence(pitch))
+                    
+                    for index in 0...11 {
+                        pitchBuffer[index] *= rememberingFactor;
+                    }
+                    
+                    if (pitchConfidence > 0.5) {
+                        let closestNote = Int(round(fvec_get_sample(out, 0))) % 12
+                        pitchBuffer[closestNote] = fmin(1.0, pitchBuffer[closestNote] + 0.1);
+                        print(Int(round(fvec_get_sample(out, 0))))
+                    }
+                    
                     sampleCount = 0
                 }
             }
@@ -193,8 +210,11 @@ final class RecordAudio: NSObject {
     }
     
     private func setupAubio(samplerate: UInt32) {
-        samples = new_fvec(sampleSize)
-        tempo = new_aubio_tempo("default", 1024, sampleSize, samplerate)
+        samples = new_fvec(hopSize)
+        tempo = new_aubio_tempo("default", hopSize*2, hopSize, samplerate)
+        pitch = new_aubio_pitch("default", hopSize*2, hopSize, samplerate)
+        aubio_pitch_set_unit(pitch!, "midi")
+        aubio_pitch_set_silence(pitch!, -90)
         aubio_tempo_set_silence(tempo!, -52)
     }
     
@@ -279,9 +299,11 @@ final class RecordAudio: NSObject {
     }
     
     private func tearDownAubio() {
-        if let tempo = tempo, let samples = samples {
+        if let tempo = tempo, let pitch = pitch, let samples = samples {
+            del_aubio_pitch(pitch)
             del_aubio_tempo(tempo)
             del_fvec(samples)
+            self.pitch = nil
             self.tempo = nil
             self.samples = nil
         }
