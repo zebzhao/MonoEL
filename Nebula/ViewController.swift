@@ -70,11 +70,11 @@ class ViewController: UIViewController
         
         let cArguments = [time, touchPosition, resolution, 1.0, 1.0, 1.0, 1.0] as [Any]
         let image = cloudsKernel.apply(extent: imageViewContainer.bounds, arguments: cArguments)
-        let pitchBuffer = recordAudio.pitchBuffer
+        let pitchBuffer = recordAudio.notesBuffer
         
-        pitchRange1 = CIVector(x: pitchBuffer[0], y: pitchBuffer[1], z: pitchBuffer[2], w: pitchBuffer[3])
-        pitchRange2 = CIVector(x: pitchBuffer[4], y: pitchBuffer[5], z: pitchBuffer[6], w: pitchBuffer[7])
-        pitchRange3 = CIVector(x: pitchBuffer[8], y: pitchBuffer[9], z: pitchBuffer[10], w: pitchBuffer[11])
+        pitchRange1 = CIVector(x: CGFloat(pitchBuffer[0]), y: CGFloat(pitchBuffer[1]), z: CGFloat(pitchBuffer[2]), w: CGFloat(pitchBuffer[3]))
+        pitchRange2 = CIVector(x: CGFloat(pitchBuffer[4]), y: CGFloat(pitchBuffer[5]), z: CGFloat(pitchBuffer[6]), w: CGFloat(pitchBuffer[7]))
+        pitchRange3 = CIVector(x: CGFloat(pitchBuffer[8]), y: CGFloat(pitchBuffer[9]), z: CGFloat(pitchBuffer[10]), w: CGFloat(pitchBuffer[11]))
         
         let wArguments = [time, bottomResolution, pitchRange1, pitchRange2, pitchRange3] as [Any]
         let wImage = wheelKernel.apply(extent: bottomImageView.bounds, arguments: wArguments)

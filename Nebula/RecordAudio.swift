@@ -18,13 +18,16 @@ import aubio
 // call startRecording() to start recording
 final class RecordAudio: NSObject {
     var tempo: OpaquePointer? = nil
-    var pitch: OpaquePointer? = nil
+    var notes: OpaquePointer? = nil
     var samples: UnsafeMutablePointer<fvec_t>? = nil
-    let hopSize: UInt32 = 128
+    var out: UnsafeMutablePointer<fvec_t>? = nil
+    let hopSize: UInt32 = 256
+    let bufferSize: UInt32 = 512
     
-    let rememberingFactor: CGFloat = 0.98
+    let rememberingFactor: Float = 0.98
     var bpmBuffer = 0
-    var pitchBuffer = ContiguousArray<CGFloat>(repeating: 0.0, count: 12)
+    var notesBuffer = Array<Float>(repeating: 0.0, count: 12)
+    var notesDeltaBuffer = Array<Float>(repeating: 0.0, count: 12)
     var audioUnit:   AudioUnit?     = nil
     
     var micPermission   =  false
@@ -138,8 +141,7 @@ final class RecordAudio: NSObject {
     }
     
     func processMicrophoneBuffer(inputDataList : UnsafeMutablePointer<AudioBufferList>, frameCount : UInt32) {
-        guard let samples = samples, let tempo = tempo, let pitch = pitch else { return }
-        let out = new_fvec(1)
+        guard let samples = samples, let out = out, let tempo = tempo, let notes = notes else { return }
         let count = Int(frameCount)
         var sampleCount: UInt32 = 0
         
@@ -158,29 +160,34 @@ final class RecordAudio: NSObject {
                 
                 if sampleCount == hopSize || i == count/2-1 {
                     aubio_tempo_do(tempo, samples, out)
-                    if (fvec_get_sample(out, 0) != 0) {
+                    if fvec_get_sample(out, 0) != 0 {
                         // Yay! A BEAT!!!
 //                        print(aubio_tempo_get_bpm(tempo))
                     }
                     
-                    aubio_pitch_do(pitch, samples, out)
-                    let pitchConfidence = CGFloat(aubio_pitch_get_confidence(pitch))
-                    
-                    for index in 0...11 {
-                        pitchBuffer[index] *= rememberingFactor;
+                    aubio_notes_do(notes, samples, out)
+                    let noteOff = Int(fvec_get_sample(out, 2))
+                    if noteOff > 0 {
+                        notesDeltaBuffer[noteOff % 12] = 0.0
+                    }
+                    // did we get a note on?
+                    let noteOn = Int(fvec_get_sample(out, 0))
+                    if noteOn > 0 {
+                        notesDeltaBuffer[noteOn % 12] = fmin(1.0, fvec_get_sample(out, 1)/90.0)
                     }
                     
-                    if (pitchConfidence > 0.5) {
-                        let closestNote = Int(round(fvec_get_sample(out, 0))) % 12
-                        pitchBuffer[closestNote] = fmin(1.0, pitchBuffer[closestNote] + 0.1);
-                        print(Int(round(fvec_get_sample(out, 0))))
+                    for index in 0...11 {
+                        if notesDeltaBuffer[index] == 0 {
+                            notesBuffer[index] *= rememberingFactor
+                        } else {
+                            notesBuffer[index] = fmin(fmax(notesBuffer[index], 0.12)/rememberingFactor, notesDeltaBuffer[index]);
+                        }
                     }
                     
                     sampleCount = 0
                 }
             }
         }
-        del_fvec(out)
     }
     
     func stopRecording() {
@@ -211,11 +218,11 @@ final class RecordAudio: NSObject {
     
     private func setupAubio(samplerate: UInt32) {
         samples = new_fvec(hopSize)
-        tempo = new_aubio_tempo("default", hopSize*2, hopSize, samplerate)
-        pitch = new_aubio_pitch("default", hopSize*2, hopSize, samplerate)
-        aubio_pitch_set_unit(pitch!, "midi")
-        aubio_pitch_set_silence(pitch!, -90)
-        aubio_tempo_set_silence(tempo!, -52)
+        out = new_fvec(hopSize)
+        tempo = new_aubio_tempo("default", bufferSize, hopSize, samplerate)
+        notes = new_aubio_notes("default", bufferSize, hopSize, samplerate)
+        aubio_tempo_set_silence(tempo, -80.0)
+        aubio_notes_set_silence(notes, -80.0)
     }
     
     private func setupAudioUnit() {
@@ -299,11 +306,12 @@ final class RecordAudio: NSObject {
     }
     
     private func tearDownAubio() {
-        if let tempo = tempo, let pitch = pitch, let samples = samples {
-            del_aubio_pitch(pitch)
+        if let tempo = tempo, let out = out, let notes = notes, let samples = samples {
+            del_aubio_notes(notes)
             del_aubio_tempo(tempo)
             del_fvec(samples)
-            self.pitch = nil
+            del_fvec(out)
+            self.notes = nil
             self.tempo = nil
             self.samples = nil
         }

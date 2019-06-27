@@ -119,7 +119,7 @@ float4 render(float3 ro, float3 rd, float iTime, float2 bsMo, float pColor, floa
 
 constant float TAU = 3.1415926535*2.0;
 constant float PEAKS = 12.0;
-constant float BRIGHTNESS = 0.05;
+constant float BRIGHTNESS = 0.038;
 constant float4 R = float4(0.22487037, 0.68850972, 0.22487037, 0.8256673);
 constant float4 G = float4(0.54558713, 0.37599467, 0.54558713, 0.34957688);
 constant float4 B = float4(0.8256673, 0.34957688, 0.8256673, 0.44279738);
@@ -140,7 +140,8 @@ extern "C" {
         {
             float2 fragCoord = dest.coord().xy;
             float2 p = (2.0*fragCoord.xy-resolution.xy)/resolution.y;
-            float a = atan2(p.y, p.x)/TAU;
+            float angle = atan2(p.y, p.x)/TAU;
+            float a = angle + 0.05*iTime;
             float d = 2.0*length(p);
             
             //get the color
@@ -148,18 +149,18 @@ extern "C" {
             float3 color = mix(float3(R[indices[0]], G[indices[0]], B[indices[0]]),
                                float3(R[indices[1]], G[indices[1]], B[indices[1]]), fract(4.0*a));
             // draw color beam
-            short ia = short(12.0*(a + 0.5)) % 12;
+            short ia = short(12.0*(angle + 0.5)) % 12;
             float pitchStr;
             if (ia > 7) {
-                pitchStr = pitchRange3[ia];
+                pitchStr = pitchRange3[ia % 8]*1.25;
             }
             else if (ia > 3) {
-                pitchStr = pitchRange2[ia];
+                pitchStr = pitchRange2[ia % 4]*1.12;
             }
             else {
                 pitchStr = pitchRange1[ia];
             }
-            float beamWidth = (1.0 + clamp(pitchStr, 0.0, 0.6)*sin(TAU*a*PEAKS)) * BRIGHTNESS / abs(d - 1.0);
+            float beamWidth = (1.62 + saturate(pitchStr)*sin(TAU*angle*PEAKS)) * BRIGHTNESS / abs(d - 1.0);
             float3 circleCol = color*float3(beamWidth);
             
             // Normalized pixel coordinates (from 0 to 1)
@@ -174,20 +175,21 @@ extern "C" {
             float distFromMid = pow(abs(.5-uv.y), 1.2);
             float edge = resolution.y/resolution.x/4.0;
             float scl = step(edge, uv.x);
-            uv.x = saturate(uv.x - edge);
+            uv.x *= 2;
+            uv.x = fract(uv.x + iTime*0.1);
             float lineStr;
             short ix = int(uv.x*12.0);
-            if (ia > 7) {
-                lineStr = pitchRange3[ix];
+            if (ix > 7) {
+                lineStr = pitchRange3[ix % 8]*1.25;
             }
-            else if (ia > 3) {
-                lineStr = pitchRange2[ix];
+            else if (ix > 3) {
+                lineStr = pitchRange2[ix % 4]*1.12;
             }
             else {
                 lineStr = pitchRange1[ix];
             }
             lineStr = clamp(lineStr*abs(sin(6*TAU*uv.x)), 0.1, 1.0);
-            float3 lineCol = color*0.002*lineStr*scl/distFromMid;
+            float3 lineCol = color*0.01*lineStr*scl/distFromMid;
             // Output to screen
             return float4(circleCol + lineCol, 1.0);
         }
