@@ -15,32 +15,18 @@ class ViewController: UIViewController
 {
     @IBOutlet var imageViewContainer: UIView!
     @IBOutlet var imageView: MetalImageView!
-    @IBOutlet var bottomImageView: MetalImageView!
     
-    let scaleFactor: CGFloat = 6
+    let scaleFactor: CGFloat = 4
     var time: CGFloat = 1
     var resolution = CIVector(x: 0, y: 0)
-    var bottomResolution = CIVector(x: 0, y: 0)
-    var touchPosition = CIVector(x: 0, y: 0)
-    var pitchRange1 = CIVector(x: 0, y: 0, z: 0, w: 0)
-    var pitchRange2 = CIVector(x: 0, y: 0, z: 0, w: 0)
-    var pitchRange3 = CIVector(x: 0, y: 0, z: 0, w: 0)
     
     let recordAudio = RecordAudio()
     
-    lazy var cloudsKernel: CIColorKernel =
+    lazy var defaultKernel: CIColorKernel =
         {
             let url = Bundle.main.url(forResource: "default", withExtension: "metallib")!
             let data = try! Data(contentsOf: url)
-            let kernel = try! CIColorKernel(functionName: "cloudsShader", fromMetalLibraryData: data)
-            return kernel
-    }()
-    
-    lazy var wheelKernel: CIColorKernel =
-        {
-            let url = Bundle.main.url(forResource: "default", withExtension: "metallib")!
-            let data = try! Data(contentsOf: url)
-            let kernel = try! CIColorKernel(functionName: "wheelShader", fromMetalLibraryData: data)
+            let kernel = try! CIColorKernel(functionName: "mainImage", fromMetalLibraryData: data)
             return kernel
     }()
     
@@ -68,28 +54,23 @@ class ViewController: UIViewController
     {
         time += 0.001
         
-        let cArguments = [time, touchPosition, resolution, 1.0, 1.0, 1.0, 1.0] as [Any]
-        let image = cloudsKernel.apply(extent: imageViewContainer.bounds, arguments: cArguments)
-        let pitchBuffer = recordAudio.notesBuffer
+        let nb = recordAudio.notesBuffer
         
-        pitchRange1 = CIVector(x: CGFloat(pitchBuffer[0]), y: CGFloat(pitchBuffer[1]), z: CGFloat(pitchBuffer[2]), w: CGFloat(pitchBuffer[3]))
-        pitchRange2 = CIVector(x: CGFloat(pitchBuffer[4]), y: CGFloat(pitchBuffer[5]), z: CGFloat(pitchBuffer[6]), w: CGFloat(pitchBuffer[7]))
-        pitchRange3 = CIVector(x: CGFloat(pitchBuffer[8]), y: CGFloat(pitchBuffer[9]), z: CGFloat(pitchBuffer[10]), w: CGFloat(pitchBuffer[11]))
+        let r1 = CIVector(x: CGFloat(nb[0]), y: CGFloat(nb[1]), z: CGFloat(nb[2]), w: CGFloat(nb[3]))
+        let r2 = CIVector(x: CGFloat(nb[4]), y: CGFloat(nb[5]), z: CGFloat(nb[6]), w: CGFloat(nb[7]))
+        let r3 = CIVector(x: CGFloat(nb[8]), y: CGFloat(nb[9]), z: CGFloat(nb[10]), w: CGFloat(nb[11]))
         
-        let wArguments = [time, bottomResolution, pitchRange1, pitchRange2, pitchRange3] as [Any]
-        let wImage = wheelKernel.apply(extent: bottomImageView.bounds, arguments: wArguments)
+        let args = [time, resolution, r1, r2, r3] as [Any]
+        let image = defaultKernel.apply(extent: imageView.bounds, arguments: args)
         
         imageView.image = image
-        bottomImageView.image = wImage
     }
     
     override func viewDidLayoutSubviews()
     {
-        imageViewContainer.bounds = CGRect.init(x: 0.0, y: 24.0/scaleFactor, width: ceil(view.bounds.width/scaleFactor)+1.0, height: (view.bounds.height - 128.0)/scaleFactor)
-        imageViewContainer.frame = CGRect.init(x: 0.0, y: 24.0, width: view.bounds.width+scaleFactor, height: view.bounds.height - 128.0)
-        bottomImageView.bounds = CGRect.init(x: 0.0, y: 0.0, width: view.bounds.width, height: 128.0)
-        bottomImageView.frame = CGRect.init(x: 0.0, y: view.bounds.height - 128.0, width: view.bounds.width, height: 128.0)
+        imageViewContainer.bounds = CGRect.init(x: 0.0, y: 0.0, width: ceil(view.bounds.width/scaleFactor), height: ceil(view.bounds.height/scaleFactor))
+        imageViewContainer.frame = CGRect.init(x: 0.0, y: 0.0, width: view.bounds.width, height: view.bounds.height)
+        
         resolution = CIVector(x: imageViewContainer.bounds.width, y: imageViewContainer.bounds.height)
-        bottomResolution = CIVector(x: bottomImageView.bounds.width, y: bottomImageView.bounds.height)
     }
 }

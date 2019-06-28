@@ -27,6 +27,7 @@ class MetalImageView: MTKView
         super.init(coder: coder)
         
         self.device = metalDevice
+        self.layer.isOpaque = false
         
         if super.device == nil
         {
@@ -49,12 +50,16 @@ class MetalImageView: MTKView
     
     func renderImage()
     {
-        guard let
-            image = image,
+        guard
+            let image = image,
+            let rpd = currentRenderPassDescriptor,
             let targetTexture = currentDrawable?.texture else
         {
             return
         }
+        
+        rpd.colorAttachments[0].loadAction = .clear
+        rpd.colorAttachments[0].clearColor = MTLClearColorMake(1, 0, 0, 0.5)
         
         let commandBuffer = MetalImageView.commandQueue!.makeCommandBuffer()!
         

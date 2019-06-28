@@ -18,6 +18,7 @@
 		FD0EDB0822AB40FA0035673C /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD0EDB0722AB40FA0035673C /* aubio.framework */; };
 		FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0922AB496B0035673C /* RecordAudio.swift */; };
 		FD0EDB0C22AED5F60035673C /* MetalImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0B22AED5F60035673C /* MetalImageView.swift */; };
+		FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		FD0EDB0722AB40FA0035673C /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Nebula/aubio.framework; sourceTree = "<group>"; };
 		FD0EDB0922AB496B0035673C /* RecordAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordAudio.swift; sourceTree = "<group>"; };
 		FD0EDB0B22AED5F60035673C /* MetalImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalImageView.swift; sourceTree = "<group>"; };
+		FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxMediaPicker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +81,7 @@
 				FD0EDAFB22A5AFED0035673C /* Kernel.metal */,
 				FD0EDB0922AB496B0035673C /* RecordAudio.swift */,
 				FD0EDB0B22AED5F60035673C /* MetalImageView.swift */,
+				FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */,
 			);
 			path = Nebula;
 			sourceTree = "<group>";
@@ -166,6 +169,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */,
 				3E4A194B1C8F1948006032BC /* ViewController.swift in Sources */,
 				FD0EDB0C22AED5F60035673C /* MetalImageView.swift in Sources */,
 				FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */,
