@@ -15,7 +15,8 @@ float2x2 m(float a) {
 }
 
 float map(float t, float3 p){
-    p.xz *= m(t*0.4);p.xy*= m(t*0.3);
+    p.xz = m(t*0.4)*p.xz;
+    p.xy = m(t*0.3)*p.xy;
     float3 q = p*2.+t;
     return length(p+float3(sin(t*0.7)))*log(length(p)+1.) + sin(q.x+sin(q.z+sin(q.y)))*0.5 - 1.;
 }
@@ -23,15 +24,17 @@ float map(float t, float3 p){
 float3 ether(float t, float2 p, float3 baseClr, float3 dynClr) {
     float3 cl = float3(0.);
     float d = 2.5;
+    float3 ct = float3(0.5*sin(t), 0.5*cos(t+0.1), 5.);
+    p = m(0.15*t)*p;
     for(int i=0; i<=5; i++) {
-        float3 p = float3(0,0,5.) + normalize(float3(p, -1.))*d;
-        float rz = map(p);
-        float f =  clamp((rz - map(t, p+.1))*0.5, -.1, 1. );
+        float3 pt = ct + normalize(float3(p, -1.))*d;
+        float rz = map(t, pt);
+        float f =  clamp((rz - map(t, pt + .1))*0.5, -.1, 1. );
         float3 l = baseClr + dynClr*f;
         cl = cl*l + smoothstep(2.5, .0, rz)*.7*l;
         d += min(rz, 1.);
     }
-    return cl
+    return cl;
 }
 
 extern "C" {
@@ -42,8 +45,8 @@ extern "C" {
                          float4 r2,
                          float4 r3,
                          destination dest) {
-            float2 fragCoord = dest.coord().xy;
-            float2 p = fragCoord.xy/iResolution.y - float2(.9,.5);
+            float2 fragCoord = dest.coord().xy/iResolution.xy;
+            float2 p = fragCoord.xy - float2(.5,.5);
             float3 c1 = float3(0.1,0.3,.4);
             float3 c2 = float3(5., 2.5, 3.);
             float3 e1 = ether(iTime, p, c1.rgg, c2.rbb);

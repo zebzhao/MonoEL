@@ -24,10 +24,12 @@ final class RecordAudio: NSObject {
     let hopSize: UInt32 = 256
     let bufferSize: UInt32 = 512
     
-    let rememberingFactor: Float = 0.98
-    var bpmBuffer = 0
-    var notesBuffer = Array<Float>(repeating: 0.0, count: 12)
-    var notesDeltaBuffer = Array<Float>(repeating: 0.0, count: 12)
+    let rememberingFactor: Float = 0.97
+    let bmpBufferLength = 8
+    var bmpBufferIdx = 0
+    var bpmBuffer = [Float](repeating: 0.0, count: 8)
+    var notesBuffer = [Float](repeating: 0.0, count: 12)
+    var notesDeltaBuffer = [Float](repeating: 0.0, count: 12)
     var audioUnit:   AudioUnit?     = nil
     
     var micPermission   =  false
@@ -35,10 +37,6 @@ final class RecordAudio: NSObject {
     var isRecording     =  false
     
     var sampleRate : Double = 44100.0    // default audio sample rate
-    let circBuffSize = 32768        // lock-free circular fifo/buffer size
-    var circBuffer   = [Float](repeating: 0, count: 32768)  // for incoming samples
-    var circInIdx  : Int =  0
-    var audioLevel : Float  = 0.0
     
     private var hwSRate = 48000.0   // guess of device hardware sample rate
     private var micPermissionDispatchToken = 0
@@ -162,7 +160,7 @@ final class RecordAudio: NSObject {
                     aubio_tempo_do(tempo, samples, out)
                     if fvec_get_sample(out, 0) != 0 {
                         // Yay! A BEAT!!!
-//                        print(aubio_tempo_get_bpm(tempo))
+                        print(aubio_tempo_get_bpm(tempo))
                     }
                     
                     aubio_notes_do(notes, samples, out)
@@ -173,14 +171,14 @@ final class RecordAudio: NSObject {
                     // did we get a note on?
                     let noteOn = Int(fvec_get_sample(out, 0))
                     if noteOn > 0 {
-                        notesDeltaBuffer[noteOn % 12] = fmin(1.0, fvec_get_sample(out, 1)/90.0)
+                        notesDeltaBuffer[noteOn % 12] = fmin(1.0, fmax(notesDeltaBuffer[noteOn % 12], fvec_get_sample(out, 1)/96.0))
                     }
                     
                     for index in 0...11 {
                         if notesDeltaBuffer[index] == 0 {
                             notesBuffer[index] *= rememberingFactor
-                        } else {
-                            notesBuffer[index] = fmin(fmax(notesBuffer[index], 0.12)/rememberingFactor, notesDeltaBuffer[index]);
+                        } else if notesDeltaBuffer[index] > 0.3 {
+                            notesBuffer[index] = fmin(fmax(notesBuffer[index], 0.07)/rememberingFactor, notesDeltaBuffer[index]);
                         }
                     }
                     
@@ -221,8 +219,8 @@ final class RecordAudio: NSObject {
         out = new_fvec(hopSize)
         tempo = new_aubio_tempo("default", bufferSize, hopSize, samplerate)
         notes = new_aubio_notes("default", bufferSize, hopSize, samplerate)
-        aubio_tempo_set_silence(tempo, -80.0)
-        aubio_notes_set_silence(notes, -80.0)
+        aubio_tempo_set_silence(tempo, -60.0)
+        aubio_notes_set_silence(notes, -60.0)
     }
     
     private func setupAudioUnit() {

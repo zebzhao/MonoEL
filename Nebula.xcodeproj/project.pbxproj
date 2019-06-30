@@ -12,16 +12,18 @@
 		3E4A194E1C8F1948006032BC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3E4A194C1C8F1948006032BC /* Main.storyboard */; };
 		3E4A19501C8F1948006032BC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3E4A194F1C8F1948006032BC /* Assets.xcassets */; };
 		3E4A19531C8F1948006032BC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3E4A19511C8F1948006032BC /* LaunchScreen.storyboard */; };
+		691A4C063347AEA490873545 /* Pods_Nebula.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DE33793EE165E3BD7567711 /* Pods_Nebula.framework */; };
 		FD0EDAFC22A5AFED0035673C /* Kernel.metal in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDAFB22A5AFED0035673C /* Kernel.metal */; };
 		FD0EDB0422AB40B00035673C /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD0EDB0322AB40B00035673C /* Accelerate.framework */; };
 		FD0EDB0622AB40CF0035673C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD0EDB0522AB40CF0035673C /* AudioToolbox.framework */; };
-		FD0EDB0822AB40FA0035673C /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD0EDB0722AB40FA0035673C /* aubio.framework */; };
 		FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0922AB496B0035673C /* RecordAudio.swift */; };
 		FD0EDB0C22AED5F60035673C /* MetalImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0B22AED5F60035673C /* MetalImageView.swift */; };
 		FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */; };
+		FD946A9622C95D10002CD027 /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD946A9522C95D0F002CD027 /* aubio.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		00637079041121AB83116368 /* Pods-Nebula.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Nebula.debug.xcconfig"; path = "Target Support Files/Pods-Nebula/Pods-Nebula.debug.xcconfig"; sourceTree = "<group>"; };
 		3E4A19451C8F1948006032BC /* Nebula.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nebula.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E4A19481C8F1948006032BC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3E4A194A1C8F1948006032BC /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -29,13 +31,15 @@
 		3E4A194F1C8F1948006032BC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3E4A19521C8F1948006032BC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3E4A19541C8F1948006032BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		77889D80A880E1AB3B334F3A /* Pods-Nebula.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Nebula.release.xcconfig"; path = "Target Support Files/Pods-Nebula/Pods-Nebula.release.xcconfig"; sourceTree = "<group>"; };
+		7DE33793EE165E3BD7567711 /* Pods_Nebula.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Nebula.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD0EDAFB22A5AFED0035673C /* Kernel.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Kernel.metal; sourceTree = "<group>"; };
 		FD0EDB0322AB40B00035673C /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		FD0EDB0522AB40CF0035673C /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
-		FD0EDB0722AB40FA0035673C /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Nebula/aubio.framework; sourceTree = "<group>"; };
 		FD0EDB0922AB496B0035673C /* RecordAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordAudio.swift; sourceTree = "<group>"; };
 		FD0EDB0B22AED5F60035673C /* MetalImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalImageView.swift; sourceTree = "<group>"; };
 		FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxMediaPicker.swift; sourceTree = "<group>"; };
+		FD946A9522C95D0F002CD027 /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Nebula/aubio.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,9 +47,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FD0EDB0822AB40FA0035673C /* aubio.framework in Frameworks */,
+				FD946A9622C95D10002CD027 /* aubio.framework in Frameworks */,
 				FD0EDB0622AB40CF0035673C /* AudioToolbox.framework in Frameworks */,
 				FD0EDB0422AB40B00035673C /* Accelerate.framework in Frameworks */,
+				691A4C063347AEA490873545 /* Pods_Nebula.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,6 +63,7 @@
 				3E4A19471C8F1948006032BC /* Nebula */,
 				3E4A19461C8F1948006032BC /* Products */,
 				FD0EDB0222AB40B00035673C /* Frameworks */,
+				FC2DB99CFE2B55A102F92AE4 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -86,12 +92,22 @@
 			path = Nebula;
 			sourceTree = "<group>";
 		};
+		FC2DB99CFE2B55A102F92AE4 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				00637079041121AB83116368 /* Pods-Nebula.debug.xcconfig */,
+				77889D80A880E1AB3B334F3A /* Pods-Nebula.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		FD0EDB0222AB40B00035673C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				FD0EDB0722AB40FA0035673C /* aubio.framework */,
+				FD946A9522C95D0F002CD027 /* aubio.framework */,
 				FD0EDB0522AB40CF0035673C /* AudioToolbox.framework */,
 				FD0EDB0322AB40B00035673C /* Accelerate.framework */,
+				7DE33793EE165E3BD7567711 /* Pods_Nebula.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -103,9 +119,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3E4A19571C8F1948006032BC /* Build configuration list for PBXNativeTarget "Nebula" */;
 			buildPhases = (
+				5BDC1DBCF7FFB9BBB74EC998 /* [CP] Check Pods Manifest.lock */,
 				3E4A19411C8F1948006032BC /* Sources */,
 				3E4A19421C8F1948006032BC /* Frameworks */,
 				3E4A19431C8F1948006032BC /* Resources */,
+				9BC0E355165C4B3D47FBE300 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -163,6 +181,51 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5BDC1DBCF7FFB9BBB74EC998 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Nebula-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9BC0E355165C4B3D47FBE300 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Nebula/Pods-Nebula-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
+				"${BUILT_PRODUCTS_DIR}/SpotlightLyrics/SpotlightLyrics.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SpotlightLyrics.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Nebula/Pods-Nebula-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3E4A19411C8F1948006032BC /* Sources */ = {
@@ -314,6 +377,7 @@
 		};
 		3E4A19581C8F1948006032BC /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 00637079041121AB83116368 /* Pods-Nebula.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 34XH48YP27;
@@ -332,6 +396,7 @@
 		};
 		3E4A19591C8F1948006032BC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 77889D80A880E1AB3B334F3A /* Pods-Nebula.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 34XH48YP27;

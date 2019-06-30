@@ -52,7 +52,7 @@ class ViewController: UIViewController
     
     @objc func step()
     {
-        time += 0.001
+        time += 0.01
         
         let nb = recordAudio.notesBuffer
         
