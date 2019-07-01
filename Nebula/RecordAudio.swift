@@ -24,12 +24,19 @@ final class RecordAudio: NSObject {
     let hopSize: UInt32 = 256
     let bufferSize: UInt32 = 512
     
-    let rememberingFactor: Float = 0.97
-    let bmpBufferLength = 8
-    var bmpBufferIdx = 0
-    var bpmBuffer = [Float](repeating: 0.0, count: 8)
+    let gainFac: Float = 1.03
+    let offFac: Float = 0.97
+    let lossFac: Float = 0.99
+    let offThres: Float = 0.5
+    let onThres: Float = 0.6
+    
+    var bpm: Float = 100.0
+    let bpmBufferLength = 5
+    var bpmBufferIdx = 0
+    var bpmBuffer = [Float](repeating: 0.0, count: 5)
     var notesBuffer = [Float](repeating: 0.0, count: 12)
-    var notesDeltaBuffer = [Float](repeating: 0.0, count: 12)
+    var notesOnBuffer = [Float](repeating: 0.0, count: 12)
+    var notesOffBuffer = [Bool](repeating: false, count: 12)
     var audioUnit:   AudioUnit?     = nil
     
     var micPermission   =  false
@@ -41,6 +48,8 @@ final class RecordAudio: NSObject {
     private var hwSRate = 48000.0   // guess of device hardware sample rate
     private var micPermissionDispatchToken = 0
     private var interrupted = false     // for restart from audio interruption notification
+    
+    
     
     func startRecording() {
         if isRecording { return }
@@ -84,12 +93,12 @@ final class RecordAudio: NSObject {
                 try? audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: [AVAudioSession.CategoryOptions.defaultToSpeaker, AVAudioSession.CategoryOptions.mixWithOthers])
                 // choose 44100 or 48000 based on hardware rate
                 // sampleRate = 44100.0
-                var preferredIOBufferDuration = 0.0058      // 5.8 milliseconds = 256 samples
+                var preferredIOBufferDuration = 0.05      // 5.8 milliseconds = 256 samples
                 hwSRate = audioSession.sampleRate           // get native hardware rate
                 // set session to hardware rate
                 if hwSRate == 48000.0 {
                     sampleRate = 48000.0
-                    preferredIOBufferDuration = 0.0053
+                    preferredIOBufferDuration = 0.04
                 }
                 let desiredSampleRate = sampleRate
                 try audioSession.setPreferredSampleRate(desiredSampleRate)
@@ -160,25 +169,40 @@ final class RecordAudio: NSObject {
                     aubio_tempo_do(tempo, samples, out)
                     if fvec_get_sample(out, 0) != 0 {
                         // Yay! A BEAT!!!
-                        print(aubio_tempo_get_bpm(tempo))
+                        let tBpm = aubio_tempo_get_bpm(tempo)
+                        bpmBuffer[bpmBufferIdx % bpmBufferLength] = tBpm
+                        bpm = bpmBufferIdx <= bpmBufferLength ? tBpm : bpmBuffer.reduce(0.0, +)/Float(bpmBufferLength)
+                        bpmBufferIdx += 1
                     }
                     
                     aubio_notes_do(notes, samples, out)
+                    
                     let noteOff = Int(fvec_get_sample(out, 2))
+                    let noteOn = Int(fvec_get_sample(out, 0))
                     if noteOff > 0 {
-                        notesDeltaBuffer[noteOff % 12] = 0.0
+                        notesOffBuffer[noteOff % 12] = true
                     }
                     // did we get a note on?
-                    let noteOn = Int(fvec_get_sample(out, 0))
                     if noteOn > 0 {
-                        notesDeltaBuffer[noteOn % 12] = fmin(1.0, fmax(notesDeltaBuffer[noteOn % 12], fvec_get_sample(out, 1)/96.0))
+                        notesOffBuffer[noteOn % 12] = false
+                        notesOnBuffer[noteOn % 12] = fvec_get_sample(out, 1)/127.0
                     }
                     
+                    let trueGainFactor = gainFac + bpm*0.00035
+                    
                     for index in 0...11 {
-                        if notesDeltaBuffer[index] == 0 {
-                            notesBuffer[index] *= rememberingFactor
-                        } else if notesDeltaBuffer[index] > 0.3 {
-                            notesBuffer[index] = fmin(fmax(notesBuffer[index], 0.07)/rememberingFactor, notesDeltaBuffer[index]);
+                        if notesOffBuffer[index] {
+                            if notesOnBuffer[index] > offThres {
+                                notesOnBuffer[index] *= offFac
+                            } else {
+                                notesOnBuffer[index] = 0
+                                notesOffBuffer[index] = false
+                            }
+                        }
+                        if notesOnBuffer[index] == 0 {
+                            notesBuffer[index] *= lossFac
+                        } else if notesOnBuffer[index] > onThres {
+                            notesBuffer[index] = fmin(fmax(notesBuffer[index], 0.0038)*trueGainFactor, 1.0);
                         }
                     }
                     
@@ -219,8 +243,9 @@ final class RecordAudio: NSObject {
         out = new_fvec(hopSize)
         tempo = new_aubio_tempo("default", bufferSize, hopSize, samplerate)
         notes = new_aubio_notes("default", bufferSize, hopSize, samplerate)
-        aubio_tempo_set_silence(tempo, -60.0)
+        aubio_tempo_set_silence(tempo, -62.0)
         aubio_notes_set_silence(notes, -60.0)
+        aubio_notes_set_release_drop(notes, 28.0)
     }
     
     private func setupAudioUnit() {

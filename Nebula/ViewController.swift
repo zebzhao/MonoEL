@@ -17,7 +17,7 @@ class ViewController: UIViewController
     @IBOutlet var imageView: MetalImageView!
     
     let scaleFactor: CGFloat = 4
-    var time: CGFloat = 1
+    var time: Float = 1
     var resolution = CIVector(x: 0, y: 0)
     
     let recordAudio = RecordAudio()
@@ -52,8 +52,7 @@ class ViewController: UIViewController
     
     @objc func step()
     {
-        time += 0.01
-        
+        time += 0.0001*recordAudio.bpm + 0.005
         let nb = recordAudio.notesBuffer
         
         let r1 = CIVector(x: CGFloat(nb[0]), y: CGFloat(nb[1]), z: CGFloat(nb[2]), w: CGFloat(nb[3]))
