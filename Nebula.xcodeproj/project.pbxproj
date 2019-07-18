@@ -19,7 +19,9 @@
 		FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0922AB496B0035673C /* RecordAudio.swift */; };
 		FD0EDB0C22AED5F60035673C /* MetalImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0B22AED5F60035673C /* MetalImageView.swift */; };
 		FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */; };
-		FD946A9622C95D10002CD027 /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD946A9522C95D0F002CD027 /* aubio.framework */; };
+		FD946AC822D52411002CD027 /* VSSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946AC722D52411002CD027 /* VSSlider.swift */; };
+		FD946ACE22D52664002CD027 /* dj-cat.apng in Resources */ = {isa = PBXBuildFile; fileRef = FD946ACD22D52664002CD027 /* dj-cat.apng */; };
+		FD946AD022D5268E002CD027 /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD946ACF22D5268E002CD027 /* aubio.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,7 +41,9 @@
 		FD0EDB0922AB496B0035673C /* RecordAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordAudio.swift; sourceTree = "<group>"; };
 		FD0EDB0B22AED5F60035673C /* MetalImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalImageView.swift; sourceTree = "<group>"; };
 		FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxMediaPicker.swift; sourceTree = "<group>"; };
-		FD946A9522C95D0F002CD027 /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Nebula/aubio.framework; sourceTree = "<group>"; };
+		FD946AC722D52411002CD027 /* VSSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VSSlider.swift; sourceTree = "<group>"; };
+		FD946ACD22D52664002CD027 /* dj-cat.apng */ = {isa = PBXFileReference; lastKnownFileType = file; path = "dj-cat.apng"; sourceTree = "<group>"; };
+		FD946ACF22D5268E002CD027 /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Libs/aubio.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,10 +51,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FD946A9622C95D10002CD027 /* aubio.framework in Frameworks */,
 				FD0EDB0622AB40CF0035673C /* AudioToolbox.framework in Frameworks */,
 				FD0EDB0422AB40B00035673C /* Accelerate.framework in Frameworks */,
 				691A4C063347AEA490873545 /* Pods_Nebula.framework in Frameworks */,
+				FD946AD022D5268E002CD027 /* aubio.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,7 +64,7 @@
 		3E4A193C1C8F1948006032BC = {
 			isa = PBXGroup;
 			children = (
-				3E4A19471C8F1948006032BC /* Nebula */,
+				3E4A19471C8F1948006032BC /* Source */,
 				3E4A19461C8F1948006032BC /* Products */,
 				FD0EDB0222AB40B00035673C /* Frameworks */,
 				FC2DB99CFE2B55A102F92AE4 /* Pods */,
@@ -75,9 +79,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3E4A19471C8F1948006032BC /* Nebula */ = {
+		3E4A19471C8F1948006032BC /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				FD946ACC22D52636002CD027 /* Assets */,
 				3E4A19481C8F1948006032BC /* AppDelegate.swift */,
 				3E4A194A1C8F1948006032BC /* ViewController.swift */,
 				3E4A194C1C8F1948006032BC /* Main.storyboard */,
@@ -88,8 +93,9 @@
 				FD0EDB0922AB496B0035673C /* RecordAudio.swift */,
 				FD0EDB0B22AED5F60035673C /* MetalImageView.swift */,
 				FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */,
+				FD946AC722D52411002CD027 /* VSSlider.swift */,
 			);
-			path = Nebula;
+			path = Source;
 			sourceTree = "<group>";
 		};
 		FC2DB99CFE2B55A102F92AE4 /* Pods */ = {
@@ -104,12 +110,20 @@
 		FD0EDB0222AB40B00035673C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				FD946A9522C95D0F002CD027 /* aubio.framework */,
+				FD946ACF22D5268E002CD027 /* aubio.framework */,
 				FD0EDB0522AB40CF0035673C /* AudioToolbox.framework */,
 				FD0EDB0322AB40B00035673C /* Accelerate.framework */,
 				7DE33793EE165E3BD7567711 /* Pods_Nebula.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		FD946ACC22D52636002CD027 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				FD946ACD22D52664002CD027 /* dj-cat.apng */,
+			);
+			path = Assets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -176,6 +190,7 @@
 			files = (
 				3E4A19531C8F1948006032BC /* LaunchScreen.storyboard in Resources */,
 				3E4A19501C8F1948006032BC /* Assets.xcassets in Resources */,
+				FD946ACE22D52664002CD027 /* dj-cat.apng in Resources */,
 				3E4A194E1C8F1948006032BC /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -212,11 +227,15 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Nebula/Pods-Nebula-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/APNGKit/APNGKit.framework",
+				"${BUILT_PRODUCTS_DIR}/PocketSVG/PocketSVG.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/SpotlightLyrics/SpotlightLyrics.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/APNGKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PocketSVG.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SpotlightLyrics.framework",
 			);
@@ -235,6 +254,7 @@
 				FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */,
 				3E4A194B1C8F1948006032BC /* ViewController.swift in Sources */,
 				FD0EDB0C22AED5F60035673C /* MetalImageView.swift in Sources */,
+				FD946AC822D52411002CD027 /* VSSlider.swift in Sources */,
 				FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */,
 				FD0EDAFC22A5AFED0035673C /* Kernel.metal in Sources */,
 				3E4A19491C8F1948006032BC /* AppDelegate.swift in Sources */,
@@ -384,8 +404,9 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nebula",
+					"$(PROJECT_DIR)/Libs",
 				);
-				INFOPLIST_FILE = Nebula/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Source/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.spcks.Nebula;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -403,8 +424,9 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nebula",
+					"$(PROJECT_DIR)/Libs",
 				);
-				INFOPLIST_FILE = Nebula/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Source/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.spcks.Nebula;
 				PRODUCT_NAME = "$(TARGET_NAME)";
