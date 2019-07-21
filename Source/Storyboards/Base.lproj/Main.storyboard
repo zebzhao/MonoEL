@@ -23,9 +23,13 @@
                         <subviews>
                             <view clipsSubviews="YES" clearsContextBeforeDrawing="NO" userInteractionEnabled="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0tG-un-9dD">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
-                                    <mtkView autoresizesSubviews="NO" clearsContextBeforeDrawing="NO" userInteractionEnabled="NO" contentMode="scaleToFill" fixedFrame="YES" colorPixelFormat="BGRA8Unorm" depthStencilPixelFormat="Depth32Float" translatesAutoresizingMaskIntoConstraints="NO" id="1AD-dg-ANv" customClass="MetalImageView" customModule="Nebula" customModuleProvider="target">
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" insetsLayoutMarginsFromSafeArea="NO" image="Image" translatesAutoresizingMaskIntoConstraints="NO" id="sGL-MR-Kms">
+                                        <rect key="frame" x="0.0" y="1" width="375" height="811"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </imageView>
+                                    <mtkView autoresizesSubviews="NO" clearsContextBeforeDrawing="NO" userInteractionEnabled="NO" contentMode="scaleToFill" fixedFrame="YES" insetsLayoutMarginsFromSafeArea="NO" colorPixelFormat="BGRA8Unorm" depthStencilPixelFormat="Depth32Float" translatesAutoresizingMaskIntoConstraints="NO" id="1AD-dg-ANv" customClass="MetalImageView" customModule="Nebula" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     </mtkView>
@@ -36,14 +40,8 @@
                                 </accessibility>
                             </view>
                             <view opaque="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4Nw-Au-04l" customClass="VSSlider" customModule="Nebula" customModuleProvider="target">
-                                <rect key="frame" x="72" y="700" width="230" height="64"/>
+                                <rect key="frame" x="38" y="700" width="299" height="76"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <subviews>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="SliderBg" translatesAutoresizingMaskIntoConstraints="NO" id="ocz-Wb-cUe">
-                                        <rect key="frame" x="3" y="0.0" width="224" height="63"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    </imageView>
-                                </subviews>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="boolean" keyPath="vertical" value="NO"/>
                                     <userDefinedRuntimeAttribute type="number" keyPath="value">
@@ -75,15 +73,45 @@
                                     <userDefinedRuntimeAttribute type="color" keyPath="thumbTintColor">
                                         <color key="value" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="isContinuous" value="NO"/>
                                 </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <action selector="sliderTouchDown:" destination="BYZ-38-t0r" eventType="touchDown" id="1SV-Dp-DMi"/>
+                                    <action selector="sliderValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="1Cf-Ky-Bhd"/>
+                                </connections>
                             </view>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Detect" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="72A-7q-Gsi">
+                                <rect key="frame" x="50" y="670" width="52" height="20"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Photos" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Ij-DA-A1l">
+                                <rect key="frame" x="272" y="669" width="54" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Cancel" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R8l-1y-VjR">
+                                <rect key="frame" x="161" y="669" width="53" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     </view>
                     <nil key="simulatedTopBarMetrics"/>
                     <connections>
+                        <outlet property="cancelLabel" destination="R8l-1y-VjR" id="toG-lA-cee"/>
+                        <outlet property="detectLabel" destination="72A-7q-Gsi" id="kzK-Gb-N9X"/>
                         <outlet property="imageView" destination="1AD-dg-ANv" id="ZTo-8f-uD8"/>
                         <outlet property="imageViewContainer" destination="0tG-un-9dD" id="e0J-xr-pyg"/>
+                        <outlet property="photosLabel" destination="4Ij-DA-A1l" id="EOW-th-L6R"/>
+                        <outlet property="slider" destination="4Nw-Au-04l" id="o2S-vf-80U"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -92,7 +120,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="SliderBg" width="224" height="64"/>
-        <image name="SliderThumb" width="70" height="70"/>
+        <image name="Image" width="1792" height="2688"/>
+        <image name="SliderThumb" width="80" height="80"/>
     </resources>
 </document>
