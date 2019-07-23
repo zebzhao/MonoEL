@@ -23,13 +23,13 @@
 		FD946ACE22D52664002CD027 /* dj-cat.apng in Resources */ = {isa = PBXBuildFile; fileRef = FD946ACD22D52664002CD027 /* dj-cat.apng */; };
 		FD946AD022D5268E002CD027 /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD946ACF22D5268E002CD027 /* aubio.framework */; };
 		FD946ADC22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */; };
-		FD946ADE22E26053002CD027 /* FileManager+DocumentDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946ADD22E26053002CD027 /* FileManager+DocumentDirectory.swift */; };
 		FD946AE722E421A9002CD027 /* mic_off.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD946AE222E421A8002CD027 /* mic_off.svg */; };
 		FD946AE922E421A9002CD027 /* mic.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD946AE422E421A9002CD027 /* mic.svg */; };
 		FD946AEC22E4B1AD002CD027 /* BlurIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946AEB22E4B1AD002CD027 /* BlurIconView.swift */; };
 		FD946AF322E4F9CA002CD027 /* clear.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD946AF122E4F9CA002CD027 /* clear.svg */; };
 		FD946AF422E4F9CA002CD027 /* add_photo.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD946AF222E4F9CA002CD027 /* add_photo.svg */; };
 		FD946AF622E4FC38002CD027 /* UILabel+Fade.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946AF522E4FC38002CD027 /* UILabel+Fade.swift */; };
+		FD9FE1FB22E738370037D1D1 /* DraggableCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9FE1FA22E738370037D1D1 /* DraggableCollectionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,13 +53,13 @@
 		FD946ACD22D52664002CD027 /* dj-cat.apng */ = {isa = PBXFileReference; lastKnownFileType = file; path = "dj-cat.apng"; sourceTree = "<group>"; };
 		FD946ACF22D5268E002CD027 /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Libs/aubio.framework; sourceTree = "<group>"; };
 		FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBezierPath+scaleAroundCenter.swift"; sourceTree = "<group>"; };
-		FD946ADD22E26053002CD027 /* FileManager+DocumentDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+DocumentDirectory.swift"; sourceTree = "<group>"; };
 		FD946AE222E421A8002CD027 /* mic_off.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mic_off.svg; sourceTree = "<group>"; };
 		FD946AE422E421A9002CD027 /* mic.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mic.svg; sourceTree = "<group>"; };
 		FD946AEB22E4B1AD002CD027 /* BlurIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurIconView.swift; sourceTree = "<group>"; };
 		FD946AF122E4F9CA002CD027 /* clear.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = clear.svg; sourceTree = "<group>"; };
 		FD946AF222E4F9CA002CD027 /* add_photo.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = add_photo.svg; sourceTree = "<group>"; };
 		FD946AF522E4FC38002CD027 /* UILabel+Fade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UILabel+Fade.swift"; sourceTree = "<group>"; };
+		FD9FE1FA22E738370037D1D1 /* DraggableCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggableCollectionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +150,7 @@
 				FD946AC722D52411002CD027 /* VSSlider.swift */,
 				FD0EDB0B22AED5F60035673C /* MetalImageView.swift */,
 				FD946AEB22E4B1AD002CD027 /* BlurIconView.swift */,
+				FD9FE1FA22E738370037D1D1 /* DraggableCollectionView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -192,7 +193,6 @@
 			isa = PBXGroup;
 			children = (
 				FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */,
-				FD946ADD22E26053002CD027 /* FileManager+DocumentDirectory.swift */,
 				FD946AF522E4FC38002CD027 /* UILabel+Fade.swift */,
 			);
 			path = Extensions;
@@ -303,14 +303,14 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Nebula/Pods-Nebula-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/APNGKit/APNGKit.framework",
+				"${BUILT_PRODUCTS_DIR}/Disk/Disk.framework",
 				"${BUILT_PRODUCTS_DIR}/PocketSVG/PocketSVG.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/SpotlightLyrics/SpotlightLyrics.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/APNGKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Disk.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PocketSVG.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SpotlightLyrics.framework",
@@ -327,7 +327,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FD946ADE22E26053002CD027 /* FileManager+DocumentDirectory.swift in Sources */,
 				FD946ADC22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift in Sources */,
 				FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */,
 				3E4A194B1C8F1948006032BC /* ViewController.swift in Sources */,
@@ -335,6 +334,7 @@
 				FD946AC822D52411002CD027 /* VSSlider.swift in Sources */,
 				FD946AF622E4FC38002CD027 /* UILabel+Fade.swift in Sources */,
 				FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */,
+				FD9FE1FB22E738370037D1D1 /* DraggableCollectionView.swift in Sources */,
 				FD0EDAFC22A5AFED0035673C /* Kernel.metal in Sources */,
 				FD946AEC22E4B1AD002CD027 /* BlurIconView.swift in Sources */,
 				3E4A19491C8F1948006032BC /* AppDelegate.swift in Sources */,

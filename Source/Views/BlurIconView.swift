@@ -3,7 +3,6 @@
 //  Nebula
 //
 //  Created by Zeb Zhao on 7/21/19.
-//  Copyright © 2019 Simon Gladman. All rights reserved.
 //
 
 import UIKit

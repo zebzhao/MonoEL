@@ -250,7 +250,6 @@ public enum RxMediaPickerError: Error {
 }
 
 extension RxMediaPickerDelegate where Self: UIViewController {
-    
     func presentPicker(picker: UIImagePickerController) {
         self.present(picker, animated: true, completion: .none)
     }

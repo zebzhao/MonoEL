@@ -7,20 +7,26 @@
 //
 
 import UIKit
-import PocketSVG
 
 class ViewController: UIViewController
 {
+    
     @IBOutlet var imageViewContainer: UIView!
     @IBOutlet var imageView: MetalImageView!
     @IBOutlet var slider: VSSlider!
     @IBOutlet var detectLabel: UILabel!
     @IBOutlet var photosLabel: UILabel!
     @IBOutlet var cancelLabel: UILabel!
+    @IBOutlet var blurView: UIVisualEffectView!
+    @IBOutlet var albumCollectionView: DraggableCollectionView!
+    @IBOutlet var albumCollectionViewContainer: UIView!
+    @IBOutlet var photoView: UIView!
     
     let recordAudio = RecordAudio()
+    let blurEffect = UIBlurEffect(style: .dark)
     let scaleFactor: CGFloat = 4
     
+    var albumImagesDataSource: DraggableCollectionViewDataSource!
     var micIconView: BlurIconView!
     var micOffIconView: BlurIconView!
     var addPhotoIconView: BlurIconView!
@@ -37,18 +43,21 @@ class ViewController: UIViewController
             return kernel
     }()
     
-    override var prefersStatusBarHidden: Bool {
-        get {
-            return true
-        }
-    }
+//    override var prefersStatusBarHidden: Bool {
+//        get {
+//            return true
+//        }
+//    }
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
         setUpSlider()
+        setUpAlbum()
         
+        photoView.alpha = 0
+        blurView.effect = nil
         imageViewContainer.transform = CGAffineTransform.identity.scaledBy(x: scaleFactor, y: scaleFactor)
 
         let displayLink = CADisplayLink(target: self, selector: #selector(step))
@@ -81,6 +90,18 @@ class ViewController: UIViewController
         resolution = CIVector(x: imageViewContainer.bounds.width, y: imageViewContainer.bounds.height)
     }
     
+    func setUpAlbum()
+    {
+        let bounds = albumCollectionViewContainer.bounds
+        let gradient = CAGradientLayer()
+        gradient.frame = bounds;
+        gradient.colors = [UIColor.clear.cgColor, UIColor.black.cgColor, UIColor.black.cgColor, UIColor.clear.cgColor];
+        gradient.locations = [35.0/bounds.height, 80.0/bounds.height, 1.0 - 80.0/bounds.height, 1.0 - 35.0/bounds.height] as [NSNumber]
+        albumCollectionViewContainer.layer.mask = gradient
+        
+        albumImagesDataSource = DraggableCollectionViewDataSource(view: albumCollectionView, imagePaths: ["Image", "Image", "Image", "Image", "Image", "Image", "Image", "Image"])
+    }
+    
     func setUpSlider()
     {
         let x = slider.frame.minX + 2
@@ -98,6 +119,24 @@ class ViewController: UIViewController
         view.bringSubviewToFront(slider)
     }
     
+    func blurOutPhotoView()
+    {
+        guard self.blurView?.effect != nil else {return}
+        UIView.animate(withDuration: 0.5) {
+            self.photoView.alpha = 0.0
+            self.blurView.effect = nil
+        }
+    }
+    
+    func blurInPhotoView()
+    {
+        guard self.blurView?.effect == nil else {return}
+        UIView.animate(withDuration: 0.5) {
+            self.photoView.alpha = 1.0
+            self.blurView.effect = self.blurEffect
+        }
+    }
+    
     @IBAction func sliderValueChanged(_ sender: Any) {
         switch(slider.roundedValue) {
         case 1.0:
@@ -108,6 +147,7 @@ class ViewController: UIViewController
             detectLabel.fadeOut()
             photosLabel.fadeOut()
             cancelLabel.fadeOut()
+            blurOutPhotoView()
             break
         case 0:
             micIconView.show(activate: true)
@@ -117,6 +157,7 @@ class ViewController: UIViewController
             detectLabel.fadeIn(toAlpha: 1)
             cancelLabel.fadeIn(toAlpha: 0.5)
             photosLabel.fadeOut()
+            blurOutPhotoView()
             break
         case 2.0:
             micIconView.hide()
@@ -126,6 +167,7 @@ class ViewController: UIViewController
             photosLabel.fadeIn(toAlpha: 1)
             cancelLabel.fadeIn(toAlpha: 0.5)
             detectLabel.fadeOut()
+            blurInPhotoView()
             break
         default:
             break

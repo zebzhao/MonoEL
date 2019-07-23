@@ -1,28 +1,28 @@
 PODS:
-  - APNGKit (1.1.0)
+  - Disk (0.6.3)
   - PocketSVG (2.4.2)
   - RxSwift (5.0.0)
   - SpotlightLyrics (0.1.5)
 
 DEPENDENCIES:
-  - APNGKit (~> 1.1)
+  - Disk (~> 0.6.3)
   - PocketSVG (~> 2.4)
   - RxSwift (~> 5)
   - SpotlightLyrics
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
-    - APNGKit
+    - Disk
     - PocketSVG
     - RxSwift
     - SpotlightLyrics
 
 SPEC CHECKSUMS:
-  APNGKit: 8fcf50c4004d6d01473707412d162e90d1fa599a
+  Disk: 76cccb6fed1c27cd661bbdea7b117d887c2f72e5
   PocketSVG: c30139829206a43df2ec203880e3970531facba7
   RxSwift: 8b0671caa829a763bbce7271095859121cbd895f
   SpotlightLyrics: dd24e435678db20b476b454447e767f3f88f2b6e
 
-PODFILE CHECKSUM: 740b4456e71f372ab1056d1852ebfe58ebcdaf34
+PODFILE CHECKSUM: e199666e4a40e0b9aa7b863ce8e4ba779c11959f
 
 COCOAPODS: 1.7.1

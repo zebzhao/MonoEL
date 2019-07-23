@@ -8,6 +8,6 @@ target 'Nebula' do
   # Pods for Nebula
   pod 'RxSwift', '~> 5'
   pod 'SpotlightLyrics'
-  pod 'APNGKit', '~> 1.1'
   pod 'PocketSVG', '~> 2.4'
+  pod 'Disk', '~> 0.6.3'
 end

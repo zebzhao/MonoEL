@@ -233,6 +233,8 @@ public class VSSlider: UIControl {
             slider.transform = CGAffineTransform(scaleX: 1, y: -1)
         case (false, false, _):
             slider.transform = .identity
+        default:
+            break
         }
         
         slider.minimumValue = minimumValue
