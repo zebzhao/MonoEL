@@ -52,6 +52,7 @@ class BlurIconView: UIVisualEffectView
         maskLayer.path = svgPathEmpty.cgPath
         maskLayer.fillRule = CAShapeLayerFillRule.evenOdd
         
+        self.isUserInteractionEnabled = false
         self.frame = CGRect(x: x, y: y, width: 76, height: 76)
         self.layer.mask = maskLayer
     }
@@ -66,11 +67,15 @@ class BlurIconView: UIVisualEffectView
             UIView.animate(withDuration: 0.3) {
                 self.effect = self.activeBlurEffect
             }
+        } else if (isActive && !activate) {
+            isActive = false
+            UIView.animate(withDuration: 0.3) {
+                self.effect = self.blurEffect
+            }
         }
         guard !isShown else {return}
         isShown = true
         maskLayer.add(showAnimation, forKey: showAnimation.keyPath)
-        
     }
     
     public func hide() {
