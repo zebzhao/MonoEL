@@ -8,31 +8,24 @@
 import UIKit
 
 class ImageCellDataSource: NSObject, UICollectionViewDataSource {
-    var imagePaths: [String]
+    var imageRefs: [ImageRef]
     var view: UICollectionView
     
-    init(view: UICollectionView, imagePaths: [String]) {
+    init(view: UICollectionView, imageRefs: [ImageRef]) {
         self.view = view
-        self.imagePaths = imagePaths
+        self.imageRefs = imageRefs
         super.init()
         view.dataSource = self
         view.register(ImageCell.self, forCellWithReuseIdentifier: ImageCell.identifier)
     }
     
-    @objc func removeBtnClick(_ sender: UIButton)   {
-        let hitPoint = sender.convert(CGPoint(x: sender.frame.width, y: sender.frame.height), to: view)
-        let hitIndex = view.indexPathForItem(at: hitPoint)
-        self.imagePaths.remove(at: (hitIndex!.row))
-        view.reloadData()
-    }
-    
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return self.imagePaths.count
+        return self.imageRefs.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageCell.identifier, for: indexPath) as! ImageCell
-        cell.imgView.image = UIImage(named: "\(imagePaths[indexPath.row])")
+        cell.imgView.image = UIImage.loadImageRef(imageRef: imageRefs[indexPath.row])
         return cell
     }
 }
@@ -50,8 +43,8 @@ class ImageCell : UICollectionViewCell
         
         imgView = UIImageView(frame: self.contentView.bounds)
         imgView.contentMode = .scaleAspectFill
-        imgView.layer.cornerRadius = 8
-        imgView.clipsToBounds = true
+        self.layer.cornerRadius = 8
+        self.layer.masksToBounds = true
         
         contentView.addSubview(imgView)
     }

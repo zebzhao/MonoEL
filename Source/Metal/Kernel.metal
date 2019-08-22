@@ -45,8 +45,13 @@ extern "C" {
                          float4 r1,
                          float4 r2,
                          float4 r3,
+                         float iTransition,
                          destination dest) {
             float2 p = dest.coord().xy/iResolution.xy - float2(.5,.5);
+            //float x = p.x;
+            //p.x = mix(x, length(p), iTransition);
+            //p.y = mix(p.y, atan2(p.y, x), iTransition);
+            
             float3 c1 = float3(0.1,0.3,.4);
             float3 c2 = float3(5., 2.5, 3.);
             float2x3 ce1 = float2x3(c1.rgg, c2.rbb);

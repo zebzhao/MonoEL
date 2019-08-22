@@ -2,13 +2,12 @@
 //  ViewController.swift
 //  Nebula
 //
-//  Created by Simon Gladman on 08/03/2016.
-//  Copyright © 2016 Simon Gladman. All rights reserved.
-//
 
 import UIKit
+import RxSwift
+import Disk
 
-class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate
+class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate, RxMediaPickerDelegate
 {
     @IBOutlet var imageViewContainer: UIView!
     @IBOutlet var imageView: MetalImageView!
@@ -22,11 +21,16 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBOutlet var deleteCollectionView: UICollectionView!
     @IBOutlet var photoView: UIView!
     @IBOutlet var wallpaperCollectionView: UICollectionView!
+    @IBOutlet var wallpaperCollectionViewContainer: UIView!
+    @IBOutlet var powerOnIcon: UIImageView!
+    @IBOutlet var backgroundImageView: UIImageView!
     
+    let disposeBag = DisposeBag()
     let recordAudio = RecordAudio()
     let blurEffect = UIBlurEffect(style: .dark)
     let scaleFactor: CGFloat = 3
     
+    var diskCatalog: DiskCatalog!
     var albumImagesDataSource: ImageCellDataSource!
     var wallpaperImagesDataSource: ImageCellDataSource!
     var deleteImagesDataSource: ImageCellDataSource!
@@ -36,8 +40,16 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     var clearIconView: BlurIconView!
     var deleteIconView: BlurIconView!
     
+    var currentSongIdSubject = BehaviorSubject<String>(value: "default")
+    var wallpaperIndex: Int = 0
     var time: Float = 1
+    var transitionTime: CGFloat = 0
     var resolution = CIVector(x: 0, y: 0)
+    
+    lazy var mediaPicker: RxMediaPicker =
+        {
+            return RxMediaPicker(delegate: self)
+    }()
     
     lazy var defaultKernel: CIColorKernel =
         {
@@ -59,11 +71,12 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         
         setUpSlider()
         setUpAlbum()
+        setupCurrentSongIdSubject()
         
         photoView.alpha = 0
         blurView.effect = nil
         imageViewContainer.transform = CGAffineTransform.identity.scaledBy(x: scaleFactor, y: scaleFactor)
-
+  print(diskCatalog.listFiles(at: "Images"))
         let displayLink = CADisplayLink(target: self, selector: #selector(step))
         displayLink.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
         
@@ -88,7 +101,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         let r2 = CIVector(x: CGFloat(nb[4]), y: CGFloat(nb[5]), z: CGFloat(nb[6]), w: CGFloat(nb[7]))
         let r3 = CIVector(x: CGFloat(nb[8]), y: CGFloat(nb[9]), z: CGFloat(nb[10]), w: CGFloat(nb[11]))
         
-        let args = [time, resolution, r1, r2, r3] as [Any]
+        let args = [time, resolution, r1, r2, r3, transitionTime] as [Any]
         let image = defaultKernel.apply(extent: imageView.bounds, arguments: args)
         
         imageView.image = image
@@ -96,9 +109,17 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     // MARK:  Delegates
     
+    func present(picker: UIImagePickerController) {
+        present(picker, animated: true, completion: nil)
+    }
+    
+    func dismiss(picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
     func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        let item = collectionView === albumCollectionView ? albumImagesDataSource.imagePaths[indexPath.row] : wallpaperImagesDataSource.imagePaths[indexPath.row]
-        let itemProvider = NSItemProvider(object: item as NSString)
+        let item = collectionView === albumCollectionView ? albumImagesDataSource.imageRefs[indexPath.row] : wallpaperImagesDataSource.imageRefs[indexPath.row]
+        let itemProvider = NSItemProvider(object: item as ImageRef)
         let dragItem = UIDragItem(itemProvider: itemProvider)
         dragItem.localObject = item
         return [dragItem]
@@ -106,8 +127,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     func collectionView(_ collectionView: UICollectionView, itemsForAddingTo session: UIDragSession, at indexPath: IndexPath, point: CGPoint) -> [UIDragItem]
     {
-        let item = collectionView === albumCollectionView ? albumImagesDataSource.imagePaths[indexPath.row] : wallpaperImagesDataSource.imagePaths[indexPath.row]
-        let itemProvider = NSItemProvider(object: item as NSString)
+        let item = collectionView === albumCollectionView ? albumImagesDataSource.imageRefs[indexPath.row] : wallpaperImagesDataSource.imageRefs[indexPath.row]
+        let itemProvider = NSItemProvider(object: item as ImageRef)
         let dragItem = UIDragItem(itemProvider: itemProvider)
         dragItem.localObject = item
         return [dragItem]
@@ -122,7 +143,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool
     {
-        return session.canLoadObjects(ofClass: NSString.self)
+        return session.canLoadObjects(ofClass: ImageRef.self)
     }
     
     func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal
@@ -204,11 +225,17 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             }
             collectionView.performBatchUpdates({
                 if collectionView === wallpaperCollectionView {
-                    wallpaperImagesDataSource.imagePaths.remove(at: sourceIndexPath.row)
-                    wallpaperImagesDataSource.imagePaths.insert(item.dragItem.localObject as! String, at: dIndexPath.row)
+                    var imageRefsCopy = wallpaperImagesDataSource.imageRefs
+                    imageRefsCopy.remove(at: sourceIndexPath.row)
+                    imageRefsCopy.insert(item.dragItem.localObject as! ImageRef, at: dIndexPath.row)
+                    guard diskCatalog.saveWallpaper(name: try! currentSongIdSubject.value(), imageRefs: wallpaperImagesDataSource.imageRefs) else {return}
+                    wallpaperImagesDataSource.imageRefs = imageRefsCopy
                 } else {
-                    albumImagesDataSource.imagePaths.remove(at: sourceIndexPath.row)
-                    albumImagesDataSource.imagePaths.insert(item.dragItem.localObject as! String, at: dIndexPath.row)
+                    var imageRefsCopy = albumImagesDataSource.imageRefs
+                    imageRefsCopy.remove(at: sourceIndexPath.row)
+                    imageRefsCopy.insert(item.dragItem.localObject as! ImageRef, at: dIndexPath.row)
+                    guard diskCatalog.saveAlbum(imageRefs: albumImagesDataSource.imageRefs) else {return}
+                    albumImagesDataSource.imageRefs = imageRefsCopy
                 }
                 collectionView.deleteItems(at: [sourceIndexPath])
                 collectionView.insertItems(at: [dIndexPath])
@@ -237,13 +264,22 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             
             for item in coordinator.items
             {
-                guard let identifier = item.dragItem.localObject as? String else {
+                guard let identifier = item.dragItem.localObject as? ImageRef else {
                     return
                 }
                 
-                if let index = itemSource.imagePaths.firstIndex(of: identifier) {
+                if let index = itemSource.imageRefs.firstIndex(of: identifier) {
+                    var imageRefsCopy = itemSource.imageRefs
                     let indexPath = IndexPath(row: index, section: 0)
-                    itemSource.imagePaths.remove(at: index)
+                    imageRefsCopy.remove(at: index)
+                    guard (
+                        itemSource == albumImagesDataSource &&
+                            diskCatalog.deleteImage(relativePath: identifier.path) &&
+                            diskCatalog.saveAlbum(imageRefs: imageRefsCopy)) ||
+                        (itemSource == wallpaperImagesDataSource &&
+                            diskCatalog.saveWallpaper(name: try! currentSongIdSubject.value(), imageRefs: imageRefsCopy))
+                        else {return}
+                    itemSource.imageRefs = imageRefsCopy
                     itemSourceView.deleteItems(at: [indexPath])
                 }
             }
@@ -258,12 +294,21 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             {
                 let indexPath = IndexPath(row: destinationIndexPath.row + index, section: destinationIndexPath.section)
                 if collectionView === wallpaperCollectionView {
-                    wallpaperImagesDataSource.imagePaths.insert(item.dragItem.localObject as! String, at: indexPath.row)
+                    var imageRefsCopy = wallpaperImagesDataSource.imageRefs
+                    imageRefsCopy.insert(item.dragItem.localObject as! ImageRef, at: indexPath.row)
+                    guard diskCatalog.saveWallpaper(name: try! currentSongIdSubject.value(), imageRefs: imageRefsCopy) else {continue}
+                    wallpaperImagesDataSource.imageRefs = imageRefsCopy
                     indexPaths.append(indexPath)
                 } else if collectionView === deleteCollectionView {
-                    albumImagesDataSource.imagePaths.remove(at: item.sourceIndexPath!.row)
+                    var imageRefsCopy = albumImagesDataSource.imageRefs
+                    imageRefsCopy.remove(at: item.sourceIndexPath!.row)
+                    guard diskCatalog.saveAlbum(imageRefs: imageRefsCopy) else {continue}
+                    albumImagesDataSource.imageRefs = imageRefsCopy
                 } else {
-                    albumImagesDataSource.imagePaths.insert(item.dragItem.localObject as! String, at: indexPath.row)
+                    var imageRefsCopy = albumImagesDataSource.imageRefs
+                    imageRefsCopy.insert(item.dragItem.localObject as! ImageRef, at: indexPath.row)
+                    guard diskCatalog.saveAlbum(imageRefs: albumImagesDataSource.imageRefs) else {continue}
+                    albumImagesDataSource.imageRefs = imageRefsCopy
                     indexPaths.append(indexPath)
                 }
             }
@@ -272,6 +317,23 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     }
     
     // MARK:  Setup
+    
+    func setupCurrentSongIdSubject() {
+        currentSongIdSubject.subscribe({ (event) in
+            let wallpaperRefs = self.diskCatalog.loadWallpaper(name: event.element!) ?? [ImageRef]()
+            self.wallpaperIndex = 0
+            self.wallpaperImagesDataSource.imageRefs = wallpaperRefs
+            self.wallpaperCollectionView.reloadData()
+            self.backgroundImageView.animateImageRefs(next: { () -> ImageRef? in
+                let imageRefs = self.wallpaperImagesDataSource.imageRefs // Tricky: as this might be reassigned
+                let wallpaperIndex = self.wallpaperIndex >= imageRefs.count - 1 ? 0 : self.wallpaperIndex
+                let imageRef = imageRefs.indices.contains(wallpaperIndex) ? imageRefs[wallpaperIndex] : nil
+                self.wallpaperIndex = wallpaperIndex + 1
+                return imageRef
+            })
+        })
+            .disposed(by: disposeBag)
+    }
     
     func setUpAlbum() {
         albumCollectionView.dragInteractionEnabled = true
@@ -284,15 +346,18 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         wallpaperCollectionView.dragDelegate = self
         wallpaperCollectionView.dropDelegate = self
         wallpaperCollectionView.reorderingCadence = .fast
-        wallpaperCollectionView.addDashedBorder(color: UIColor.white.withAlphaComponent(0.3))
+        wallpaperCollectionViewContainer.addDashedBorder(color: UIColor.white.withAlphaComponent(0.35))
         
         deleteIconView = BlurIconView(forResource: "delete", x: deleteCollectionView.frame.minX, y: deleteCollectionView.frame.minY)
         deleteIconView.show()
         photoView.addSubview(deleteIconView)
         
-        albumImagesDataSource = ImageCellDataSource(view: albumCollectionView, imagePaths: ["Image", "Image", "Image", "Image", "Image", "Image", "Image", "Image"])
-        wallpaperImagesDataSource = ImageCellDataSource(view: wallpaperCollectionView, imagePaths: [String]())
-        deleteImagesDataSource = ImageCellDataSource(view: deleteCollectionView, imagePaths: [String]())
+        diskCatalog = DiskCatalog(controller: self)
+        let albumRefs = diskCatalog.loadAlbum() ?? [ImageRef("WP_Beach"), ImageRef("WP_Coast"), ImageRef("WP_Mountain"), ImageRef("WP_Ocean"), ImageRef("WP_Sakura"), ImageRef("WP_Stars")]
+        let wallpaperRefs = diskCatalog.loadWallpaper(name: try! currentSongIdSubject.value()) ?? [ImageRef]()
+        albumImagesDataSource = ImageCellDataSource(view: albumCollectionView, imageRefs: albumRefs)
+        wallpaperImagesDataSource = ImageCellDataSource(view: wallpaperCollectionView, imageRefs: wallpaperRefs)
+        deleteImagesDataSource = ImageCellDataSource(view: deleteCollectionView, imageRefs: [ImageRef]())
     }
     
     func setUpSlider()
@@ -326,6 +391,20 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     // MARK:  Transitions
     
+    func enterDetectView()
+    {
+        UIView.animate(withDuration: 0.5) {
+            self.transitionTime = 1.0
+        }
+    }
+    
+    func exitDetectView()
+    {
+        UIView.animate(withDuration: 0.5) {
+            self.transitionTime = 0.0
+        }
+    }
+    
     func blurOutPhotoView()
     {
         guard self.blurView?.effect != nil else {return}
@@ -344,6 +423,24 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         }
     }
     
+    func fadeInSlider()
+    {
+        UIView.animate(withDuration: 0.15) {
+            self.slider.alpha = 1.0
+            self.powerOnIcon.alpha = 0.0
+        }
+    }
+    
+    func fadeOutSlider(_ showPowerIcon: Bool)
+    {
+        UIView.animate(withDuration: 0.3) {
+            self.slider.alpha = 0.05
+            if (showPowerIcon) {
+                self.powerOnIcon.alpha = 0.35
+            }
+        }
+    }
+    
     // MARK:  Actions
     
     @IBAction func sliderValueChanged(_ sender: Any) {
@@ -357,6 +454,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             photosLabel.fadeOut()
             cancelLabel.fadeOut()
             blurOutPhotoView()
+            exitDetectView()
+            fadeOutSlider(true)
             break
         case 0:
             micIconView.show(activate: true)
@@ -367,6 +466,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             cancelLabel.fadeIn(toAlpha: 0.5)
             photosLabel.fadeOut()
             blurOutPhotoView()
+            enterDetectView()
+            fadeOutSlider(false)
             break
         case 2.0:
             micIconView.hide()
@@ -377,6 +478,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             cancelLabel.fadeIn(toAlpha: 0.5)
             detectLabel.fadeOut()
             blurInPhotoView()
+            exitDetectView()
+            fadeOutSlider(false)
             break
         default:
             break
@@ -386,7 +489,31 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBAction func sliderTouchDown(_ sender: Any) {
         micIconView.show()
         addPhotoIconView.show()
+        fadeInSlider()
         detectLabel.fadeIn(toAlpha: 0.5)
         photosLabel.fadeIn(toAlpha: 0.5)
+    }
+    
+    @IBAction func uploadImageTouchUpInside(_ sender: Any) {
+        mediaPicker.selectImage(editable: false)
+            .observeOn(MainScheduler.instance)
+            .subscribe(onNext: { arg in
+                let (image, _) = arg
+                var imageRefsCopy = self.albumImagesDataSource.imageRefs
+                let name = DateUtil.nowAsString()
+                let indexPath = self.albumCollectionView.indexPathsForVisibleItems[0]
+                imageRefsCopy.insert(ImageRef("Images/\(name)"), at: indexPath.row)
+                if self.diskCatalog.saveImage(name: name, image: image.fixOrientation()) &&
+                    self.diskCatalog.saveAlbum(imageRefs: self.albumImagesDataSource.imageRefs) {
+                    self.albumImagesDataSource.imageRefs = imageRefsCopy
+                    self.albumCollectionView.insertItems(at: [indexPath])
+                }
+            }, onError: { error in
+                let alertController = UIAlertController(title: "Fail to upload image.", message: error as? String, preferredStyle: .alert)
+                self.present(alertController, animated: true, completion: nil)
+            }, onCompleted: {
+            }, onDisposed: {
+            })
+            .disposed(by: disposeBag)
     }
 }
