@@ -5,7 +5,8 @@
 
 import UIKit
 import RxSwift
-import Disk
+import SoundWave
+import KDCircularProgress
 
 class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate, RxMediaPickerDelegate
 {
@@ -24,12 +25,15 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBOutlet var wallpaperCollectionViewContainer: UIView!
     @IBOutlet var powerOnIcon: UIImageView!
     @IBOutlet var backgroundImageView: UIImageView!
+    @IBOutlet var detectView: UIView!
+    @IBOutlet var detectViewLabel: UILabel!
     
     let disposeBag = DisposeBag()
     let recordAudio = RecordAudio()
     let blurEffect = UIBlurEffect(style: .dark)
     let scaleFactor: CGFloat = 3
     
+    var audioVisualizationView: AudioVisualizationView!
     var diskCatalog: DiskCatalog!
     var albumImagesDataSource: ImageCellDataSource!
     var wallpaperImagesDataSource: ImageCellDataSource!
@@ -39,11 +43,15 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     var addPhotoIconView: BlurIconView!
     var clearIconView: BlurIconView!
     var deleteIconView: BlurIconView!
+    var detectIconView: BlurIconView!
+    var progressBar: KDCircularProgress!
     
     var currentSongIdSubject = BehaviorSubject<String>(value: "default")
     var wallpaperIndex: Int = 0
     var time: Float = 1
-    var transitionTime: CGFloat = 0
+    var stepIndex: Int = 0
+    var transitionTime: CGFloat = 0.1
+    var transitionTimeDelta: CGFloat = 0.0;
     var resolution = CIVector(x: 0, y: 0)
     
     lazy var mediaPicker: RxMediaPicker =
@@ -70,13 +78,16 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         super.viewDidLoad()
         
         setUpSlider()
-        setUpAlbum()
+        setUpPhotoView()
+        setUpDetectView()
         setupCurrentSongIdSubject()
         
-        photoView.alpha = 0
+        // Default screen
+        enterDetectView(detectOn: false)
+        
         blurView.effect = nil
         imageViewContainer.transform = CGAffineTransform.identity.scaledBy(x: scaleFactor, y: scaleFactor)
-  print(diskCatalog.listFiles(at: "Images"))
+        
         let displayLink = CADisplayLink(target: self, selector: #selector(step))
         displayLink.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
         
@@ -95,6 +106,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @objc func step()
     {
         time += 0.0001*recordAudio.bpm + 0.005
+        transitionTime = fmin(0.95, fmax(0.1, transitionTime + transitionTimeDelta))
         let nb = recordAudio.notesBuffer
         
         let r1 = CIVector(x: CGFloat(nb[0]), y: CGFloat(nb[1]), z: CGFloat(nb[2]), w: CGFloat(nb[3]))
@@ -105,6 +117,15 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         let image = defaultKernel.apply(extent: imageView.bounds, arguments: args)
         
         imageView.image = image
+        
+        let minBpm = min(90, Int(recordAudio.bpm))
+        stepIndex += 1
+        
+        if 24*stepIndex >= minBpm {
+            stepIndex = 0
+            audioVisualizationView.add(meteringLevel: fmax(0.0, fmin(1.0, recordAudio.level/42.0 + 1.0)))
+            print(recordAudio.musicScore, recordAudio.notesOnBuffer.reduce(0.0, +), Float(recordAudio.notesOffBuffer.filter{$0}.count))
+        }
     }
     
     // MARK:  Delegates
@@ -335,7 +356,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             .disposed(by: disposeBag)
     }
     
-    func setUpAlbum() {
+    func setUpPhotoView() {
+        photoView.alpha = 0
         albumCollectionView.dragInteractionEnabled = true
         albumCollectionView.dragDelegate = self
         albumCollectionView.dropDelegate = self
@@ -358,6 +380,45 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         albumImagesDataSource = ImageCellDataSource(view: albumCollectionView, imageRefs: albumRefs)
         wallpaperImagesDataSource = ImageCellDataSource(view: wallpaperCollectionView, imageRefs: wallpaperRefs)
         deleteImagesDataSource = ImageCellDataSource(view: deleteCollectionView, imageRefs: [ImageRef]())
+    }
+    
+    func setUpDetectView()
+    {
+        detectIconView = BlurIconView(forResource: "round_mic", x: detectView.bounds.midX - 30, y: 0.45*detectView.bounds.height - 30, pulsing: true)
+        detectView.alpha = 0
+        let size: CGFloat = 150.0
+        audioVisualizationView = AudioVisualizationView(
+            frame: CGRect(x: detectView.bounds.midX - size/2,
+                          y: 0.45*detectView.bounds.height - size/2,
+                          width: size, height: size))
+        audioVisualizationView.meteringLevelBarWidth = 5.0
+        audioVisualizationView.meteringLevelBarInterItem = 1.0
+        audioVisualizationView.meteringLevelBarCornerRadius = 2.0
+        audioVisualizationView.audioVisualizationMode = .write
+        audioVisualizationView.backgroundColor = UIColor.black.withAlphaComponent(0.6);
+        audioVisualizationView.gradientStartColor = UIColor.white.withAlphaComponent(0.9)
+        audioVisualizationView.gradientEndColor = UIColor.white.withAlphaComponent(0.6)
+        audioVisualizationView.addCircularBorder(color: UIColor.white.withAlphaComponent(0.8), lineWidth: 12)
+        audioVisualizationView.layer.mask = createAudioVisualizerGradient()
+        let progressSize = size + 20
+        progressBar = KDCircularProgress(frame: CGRect(x: detectView.bounds.midX - progressSize/2,
+                                                       y: 0.45*detectView.bounds.height - progressSize/2,
+                                                       width: progressSize, height: progressSize))
+        progressBar.startAngle = -90
+        progressBar.progressThickness = 0.12
+        progressBar.trackThickness = 0.0
+        progressBar.clockwise = true
+        progressBar.gradientRotateSpeed = 2
+        progressBar.roundedCorners = false
+        progressBar.glowMode = .constant
+        progressBar.angle = 270
+        progressBar.roundedCorners = true
+        progressBar.set(colors: UIColor(rgb: 0x30f5aa), UIColor(rgb: 0x61ebc3), UIColor(rgb: 0x5bedfc), UIColor(rgb: 0xdcf5fd))
+        detectIconView.show(activate: true)
+        detectIconView.pulse()
+        detectView.addSubview(detectIconView)
+        detectView.addSubview(audioVisualizationView)
+        detectView.addSubview(progressBar)
     }
     
     func setUpSlider()
@@ -389,19 +450,34 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         return gradient
     }
     
+    func createAudioVisualizerGradient() -> CAGradientLayer
+    {
+        let gradient = CAGradientLayer()
+        gradient.frame = audioVisualizationView.bounds
+        gradient.colors = [UIColor.black.cgColor, UIColor.black.cgColor, UIColor.clear.cgColor];
+        gradient.startPoint = CGPoint(x: 0.5, y: 0.5)
+        gradient.endPoint = CGPoint(x: 1.0, y: 1.0)
+        gradient.type = .radial
+        return gradient
+    }
+    
     // MARK:  Transitions
     
-    func enterDetectView()
+    func enterDetectView(detectOn: Bool = false)
     {
+        transitionTimeDelta = 0.005
         UIView.animate(withDuration: 0.5) {
-            self.transitionTime = 1.0
+            self.detectView.alpha = 1.0
+            self.progressBar.alpha = detectOn ? 1.0 : 0.0
+            self.detectIconView.effect = detectOn ? self.detectIconView.activeBlurEffect : .none
         }
     }
     
     func exitDetectView()
     {
+        transitionTimeDelta = -0.005
         UIView.animate(withDuration: 0.5) {
-            self.transitionTime = 0.0
+            self.detectView.alpha = 0.0
         }
     }
     
@@ -454,7 +530,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             photosLabel.fadeOut()
             cancelLabel.fadeOut()
             blurOutPhotoView()
-            exitDetectView()
+            enterDetectView(detectOn: false)
             fadeOutSlider(true)
             break
         case 0:
@@ -466,7 +542,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             cancelLabel.fadeIn(toAlpha: 0.5)
             photosLabel.fadeOut()
             blurOutPhotoView()
-            enterDetectView()
+            enterDetectView(detectOn: true)
             fadeOutSlider(false)
             break
         case 2.0:

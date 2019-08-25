@@ -19,8 +19,15 @@
 		FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0922AB496B0035673C /* RecordAudio.swift */; };
 		FD0EDB0C22AED5F60035673C /* MetalImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB0B22AED5F60035673C /* MetalImageView.swift */; };
 		FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */; };
+		FD47B0FC22FA6D5B0006BEC0 /* DiskCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B0FB22FA6D5B0006BEC0 /* DiskCatalog.swift */; };
+		FD47B0FE230BB2A10006BEC0 /* DateUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B0FD230BB2A10006BEC0 /* DateUtil.swift */; };
+		FD47B100230CFCA10006BEC0 /* URL+UrlInDocumentsDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B0FF230CFCA10006BEC0 /* URL+UrlInDocumentsDirectory.swift */; };
+		FD47B102230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B101230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift */; };
+		FD47B104230ED0120006BEC0 /* UIImage+FixOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B103230ED0120006BEC0 /* UIImage+FixOrientation.swift */; };
+		FD47B10823102BA80006BEC0 /* AveragingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B10723102BA80006BEC0 /* AveragingBuffer.swift */; };
+		FD47B10A2311BE8D0006BEC0 /* round_mic.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD47B1092311BE8D0006BEC0 /* round_mic.svg */; };
+		FD47B10C2312F2600006BEC0 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */; };
 		FD946AC822D52411002CD027 /* VSSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946AC722D52411002CD027 /* VSSlider.swift */; };
-		FD946ACE22D52664002CD027 /* dj-cat.apng in Resources */ = {isa = PBXBuildFile; fileRef = FD946ACD22D52664002CD027 /* dj-cat.apng */; };
 		FD946AD022D5268E002CD027 /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD946ACF22D5268E002CD027 /* aubio.framework */; };
 		FD946ADC22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */; };
 		FD946AE722E421A9002CD027 /* mic_off.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD946AE222E421A8002CD027 /* mic_off.svg */; };
@@ -29,7 +36,9 @@
 		FD946AF322E4F9CA002CD027 /* clear.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD946AF122E4F9CA002CD027 /* clear.svg */; };
 		FD946AF422E4F9CA002CD027 /* add_photo.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD946AF222E4F9CA002CD027 /* add_photo.svg */; };
 		FD946AF622E4FC38002CD027 /* UILabel+Fade.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946AF522E4FC38002CD027 /* UILabel+Fade.swift */; };
-		FD9FE1FB22E738370037D1D1 /* DraggableCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9FE1FA22E738370037D1D1 /* DraggableCollectionView.swift */; };
+		FD9FE1FB22E738370037D1D1 /* ImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9FE1FA22E738370037D1D1 /* ImageCell.swift */; };
+		FDC821A622EA2E75009DCE9F /* delete.svg in Resources */ = {isa = PBXBuildFile; fileRef = FDC821A522EA2E75009DCE9F /* delete.svg */; };
+		FDC821A822EA2FC9009DCE9F /* UIView+DashedBorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDC821A722EA2FC9009DCE9F /* UIView+DashedBorder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,8 +58,15 @@
 		FD0EDB0922AB496B0035673C /* RecordAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordAudio.swift; sourceTree = "<group>"; };
 		FD0EDB0B22AED5F60035673C /* MetalImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalImageView.swift; sourceTree = "<group>"; };
 		FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxMediaPicker.swift; sourceTree = "<group>"; };
+		FD47B0FB22FA6D5B0006BEC0 /* DiskCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskCatalog.swift; sourceTree = "<group>"; };
+		FD47B0FD230BB2A10006BEC0 /* DateUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateUtil.swift; sourceTree = "<group>"; };
+		FD47B0FF230CFCA10006BEC0 /* URL+UrlInDocumentsDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+UrlInDocumentsDirectory.swift"; sourceTree = "<group>"; };
+		FD47B101230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImageView+AnimateImageRefs.swift"; sourceTree = "<group>"; };
+		FD47B103230ED0120006BEC0 /* UIImage+FixOrientation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+FixOrientation.swift"; sourceTree = "<group>"; };
+		FD47B10723102BA80006BEC0 /* AveragingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AveragingBuffer.swift; sourceTree = "<group>"; };
+		FD47B1092311BE8D0006BEC0 /* round_mic.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = round_mic.svg; sourceTree = "<group>"; };
+		FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
 		FD946AC722D52411002CD027 /* VSSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VSSlider.swift; sourceTree = "<group>"; };
-		FD946ACD22D52664002CD027 /* dj-cat.apng */ = {isa = PBXFileReference; lastKnownFileType = file; path = "dj-cat.apng"; sourceTree = "<group>"; };
 		FD946ACF22D5268E002CD027 /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Libs/aubio.framework; sourceTree = "<group>"; };
 		FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBezierPath+scaleAroundCenter.swift"; sourceTree = "<group>"; };
 		FD946AE222E421A8002CD027 /* mic_off.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mic_off.svg; sourceTree = "<group>"; };
@@ -59,7 +75,9 @@
 		FD946AF122E4F9CA002CD027 /* clear.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = clear.svg; sourceTree = "<group>"; };
 		FD946AF222E4F9CA002CD027 /* add_photo.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = add_photo.svg; sourceTree = "<group>"; };
 		FD946AF522E4FC38002CD027 /* UILabel+Fade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UILabel+Fade.swift"; sourceTree = "<group>"; };
-		FD9FE1FA22E738370037D1D1 /* DraggableCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggableCollectionView.swift; sourceTree = "<group>"; };
+		FD9FE1FA22E738370037D1D1 /* ImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCell.swift; sourceTree = "<group>"; };
+		FDC821A522EA2E75009DCE9F /* delete.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = delete.svg; sourceTree = "<group>"; };
+		FDC821A722EA2FC9009DCE9F /* UIView+DashedBorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+DashedBorder.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,11 +153,12 @@
 		FD946ACC22D52636002CD027 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				FD47B1092311BE8D0006BEC0 /* round_mic.svg */,
+				FDC821A522EA2E75009DCE9F /* delete.svg */,
 				FD946AF222E4F9CA002CD027 /* add_photo.svg */,
 				FD946AF122E4F9CA002CD027 /* clear.svg */,
 				FD946AE222E421A8002CD027 /* mic_off.svg */,
 				FD946AE422E421A9002CD027 /* mic.svg */,
-				FD946ACD22D52664002CD027 /* dj-cat.apng */,
 			);
 			path = Assets;
 			sourceTree = "<group>";
@@ -150,7 +169,7 @@
 				FD946AC722D52411002CD027 /* VSSlider.swift */,
 				FD0EDB0B22AED5F60035673C /* MetalImageView.swift */,
 				FD946AEB22E4B1AD002CD027 /* BlurIconView.swift */,
-				FD9FE1FA22E738370037D1D1 /* DraggableCollectionView.swift */,
+				FD9FE1FA22E738370037D1D1 /* ImageCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -177,6 +196,9 @@
 			children = (
 				FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */,
 				FD0EDB0922AB496B0035673C /* RecordAudio.swift */,
+				FD47B0FB22FA6D5B0006BEC0 /* DiskCatalog.swift */,
+				FD47B0FD230BB2A10006BEC0 /* DateUtil.swift */,
+				FD47B10723102BA80006BEC0 /* AveragingBuffer.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -194,6 +216,11 @@
 			children = (
 				FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */,
 				FD946AF522E4FC38002CD027 /* UILabel+Fade.swift */,
+				FDC821A722EA2FC9009DCE9F /* UIView+DashedBorder.swift */,
+				FD47B0FF230CFCA10006BEC0 /* URL+UrlInDocumentsDirectory.swift */,
+				FD47B101230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift */,
+				FD47B103230ED0120006BEC0 /* UIImage+FixOrientation.swift */,
+				FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -228,7 +255,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 1020;
-				ORGANIZATIONNAME = "Simon Gladman";
+				ORGANIZATIONNAME = "Zeb Zhao";
 				TargetAttributes = {
 					3E4A19441C8F1948006032BC = {
 						CreatedOnToolsVersion = 7.2.1;
@@ -260,11 +287,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FD47B10A2311BE8D0006BEC0 /* round_mic.svg in Resources */,
 				3E4A19531C8F1948006032BC /* LaunchScreen.storyboard in Resources */,
 				FD946AF322E4F9CA002CD027 /* clear.svg in Resources */,
 				3E4A19501C8F1948006032BC /* Assets.xcassets in Resources */,
-				FD946ACE22D52664002CD027 /* dj-cat.apng in Resources */,
 				FD946AE722E421A9002CD027 /* mic_off.svg in Resources */,
+				FDC821A622EA2E75009DCE9F /* delete.svg in Resources */,
 				FD946AF422E4F9CA002CD027 /* add_photo.svg in Resources */,
 				FD946AE922E421A9002CD027 /* mic.svg in Resources */,
 				3E4A194E1C8F1948006032BC /* Main.storyboard in Resources */,
@@ -304,15 +332,19 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Nebula/Pods-Nebula-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Disk/Disk.framework",
+				"${BUILT_PRODUCTS_DIR}/KDCircularProgress/KDCircularProgress.framework",
 				"${BUILT_PRODUCTS_DIR}/PocketSVG/PocketSVG.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
+				"${BUILT_PRODUCTS_DIR}/SoundWave/SoundWave.framework",
 				"${BUILT_PRODUCTS_DIR}/SpotlightLyrics/SpotlightLyrics.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Disk.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KDCircularProgress.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PocketSVG.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SoundWave.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SpotlightLyrics.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -328,16 +360,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				FD946ADC22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift in Sources */,
+				FD47B100230CFCA10006BEC0 /* URL+UrlInDocumentsDirectory.swift in Sources */,
+				FDC821A822EA2FC9009DCE9F /* UIView+DashedBorder.swift in Sources */,
 				FD0EDB1C22C6A4040035673C /* RxMediaPicker.swift in Sources */,
 				3E4A194B1C8F1948006032BC /* ViewController.swift in Sources */,
 				FD0EDB0C22AED5F60035673C /* MetalImageView.swift in Sources */,
 				FD946AC822D52411002CD027 /* VSSlider.swift in Sources */,
 				FD946AF622E4FC38002CD027 /* UILabel+Fade.swift in Sources */,
+				FD47B10823102BA80006BEC0 /* AveragingBuffer.swift in Sources */,
 				FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */,
-				FD9FE1FB22E738370037D1D1 /* DraggableCollectionView.swift in Sources */,
+				FD9FE1FB22E738370037D1D1 /* ImageCell.swift in Sources */,
+				FD47B104230ED0120006BEC0 /* UIImage+FixOrientation.swift in Sources */,
+				FD47B102230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift in Sources */,
+				FD47B0FC22FA6D5B0006BEC0 /* DiskCatalog.swift in Sources */,
+				FD47B10C2312F2600006BEC0 /* UIColor+Hex.swift in Sources */,
 				FD0EDAFC22A5AFED0035673C /* Kernel.metal in Sources */,
 				FD946AEC22E4B1AD002CD027 /* BlurIconView.swift in Sources */,
 				3E4A19491C8F1948006032BC /* AppDelegate.swift in Sources */,
+				FD47B0FE230BB2A10006BEC0 /* DateUtil.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -483,7 +523,6 @@
 				DEVELOPMENT_TEAM = 34XH48YP27;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Nebula",
 					"$(PROJECT_DIR)/Libs",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Source/Info.plist";
@@ -503,7 +542,6 @@
 				DEVELOPMENT_TEAM = 34XH48YP27;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Nebula",
 					"$(PROJECT_DIR)/Libs",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Source/Info.plist";

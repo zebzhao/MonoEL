@@ -18,4 +18,21 @@ extension UIView {
         
         self.layer.addSublayer(shapeLayer)
     }
+    
+    func addCircularBorder(color: UIColor, lineWidth: CGFloat) {
+        let shapeLayer:CAShapeLayer = CAShapeLayer()
+        let frameSize = self.frame.size
+        let padding = lineWidth/2
+        let shapeRect = CGRect(x: padding, y: padding,
+                               width: frameSize.width - padding, height: frameSize.height - padding)
+        
+        shapeLayer.bounds = shapeRect
+        shapeLayer.position = CGPoint(x: frameSize.width/2, y: frameSize.height/2)
+        shapeLayer.fillColor = UIColor.clear.cgColor
+        shapeLayer.strokeColor = color.cgColor
+        shapeLayer.lineWidth = lineWidth
+        shapeLayer.path = UIBezierPath(ovalIn: shapeRect).cgPath
+        
+        self.layer.addSublayer(shapeLayer)
+    }
 }

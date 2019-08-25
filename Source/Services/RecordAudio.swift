@@ -26,18 +26,30 @@ final class RecordAudio: NSObject {
     
     let gainFac: Float = 1.03
     let offFac: Float = 0.97
-    let lossFac: Float = 0.99
     let offThres: Float = 0.5
     let onThres: Float = 0.6
     
+    var level: Float = 0
+    var levelBuffer = AveragingBuffer(length: 5, repeating: 0, noAveragingAtStart: true)
+    var lossFac: Float = 0.99
     var bpm: Float = 100.0
-    let bpmBufferLength = 5
-    var bpmBufferIdx = 0
-    var bpmBuffer = [Float](repeating: 0.0, count: 5)
+    var bpmBuffer = AveragingBuffer(length: 8, repeating: 0, noAveragingAtStart: false)
+    var avgNotesBuffer = AveragingBuffer(length: 8, repeating: 0, noAveragingAtStart: true)
+    var musicScoreBuffer = AveragingBuffer(length: 32, repeating: 0, noAveragingAtStart: false)
+    var musicScoreBuffer2 = AveragingBuffer(length: 32, repeating: 0, noAveragingAtStart: true)
     var notesBuffer = [Float](repeating: 0.0, count: 12)
     var notesOnBuffer = [Float](repeating: 0.0, count: 12)
     var notesOffBuffer = [Bool](repeating: false, count: 12)
-    var audioUnit:   AudioUnit?     = nil
+    var lastNote: Float = -1
+    var audioUnit: AudioUnit? = nil
+    
+    var musicScore: Float {
+        get {
+            musicScoreBuffer.update(value: fmax(0, level/90 + 0.9)*(notesOnBuffer.reduce(0.0, +) + Float(notesOffBuffer.filter{$0}.count)))
+            musicScoreBuffer2.update(value: musicScoreBuffer.average)
+            return musicScoreBuffer2.average
+        }
+    }
     
     var micPermission   =  false
     var sessionActive   =  false
@@ -48,7 +60,6 @@ final class RecordAudio: NSObject {
     private var hwSRate = 48000.0   // guess of device hardware sample rate
     private var micPermissionDispatchToken = 0
     private var interrupted = false     // for restart from audio interruption notification
-    
     
     
     func startRecording() {
@@ -175,9 +186,8 @@ final class RecordAudio: NSObject {
                     if fvec_get_sample(out, 0) != 0 {
                         // Yay! A BEAT!!!
                         let tBpm = aubio_tempo_get_bpm(tempo)
-                        bpmBuffer[bpmBufferIdx % bpmBufferLength] = tBpm
-                        bpm = bpmBufferIdx <= bpmBufferLength ? tBpm : bpmBuffer.reduce(0.0, +)/Float(bpmBufferLength)
-                        bpmBufferIdx += 1
+                        bpmBuffer.update(value: tBpm)
+                        bpm = bpmBuffer.average
                     }
                     
                     aubio_notes_do(notes, samples, out)
@@ -189,8 +199,17 @@ final class RecordAudio: NSObject {
                     }
                     // did we get a note on?
                     if noteOn > 0 {
-                        notesOffBuffer[noteOn % 12] = false
-                        notesOnBuffer[noteOn % 12] = fvec_get_sample(out, 1)/127.0
+                        let noteAsFloat = Float(noteOn)
+                        if noteAsFloat > 27 && noteAsFloat < 100 {
+                            let noteDiff = abs(lastNote - noteAsFloat)
+                            if noteDiff < 16 {
+                                avgNotesBuffer.update(value: noteAsFloat)
+                            }
+                            lastNote = noteAsFloat
+                            let noteDev = fmin(64.0, 5.0*fmax(0.0, noteAsFloat - avgNotesBuffer.average))
+                            notesOnBuffer[noteOn % 12] = fvec_get_sample(out, 1)/(127.0 - noteDev)
+                            notesOffBuffer[noteOn % 12] = false
+                        }
                     }
                     
                     let trueGainFactor = gainFac + bpm*0.00035
@@ -211,6 +230,12 @@ final class RecordAudio: NSObject {
                         }
                     }
                     
+                    let tLvl = aubio_level_detection(samples, -85.0)
+                    if tLvl < 0 {
+                        levelBuffer.update(value: tLvl)
+                        level = levelBuffer.average
+                    }
+
                     sampleCount = 0
                 }
             }

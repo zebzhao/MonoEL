@@ -12,14 +12,17 @@ class BlurIconView: UIVisualEffectView
 {
     var isShown = false
     var isActive = false
+    var isPulsing = false
     
-    private let blurEffect = UIBlurEffect(style: .light)
-    private let activeBlurEffect = UIBlurEffect(style: .extraLight)
+    let blurEffect = UIBlurEffect(style: .light)
+    let activeBlurEffect = UIBlurEffect(style: .extraLight)
+    
     private let maskLayer = CAShapeLayer()
     private let showAnimation = CABasicAnimation(keyPath: "path")
+    private let pulsingAnimation = CABasicAnimation(keyPath: "path")
     private let hideAnimation = CABasicAnimation(keyPath: "path")
     
-    init(forResource: String, x: CGFloat, y: CGFloat) {
+    init(forResource: String, x: CGFloat, y: CGFloat, pulsing: Bool = false) {
         super.init(effect: blurEffect)
         
         let iconSvgUrl = Bundle.main.url(forResource: forResource, withExtension: "svg")!
@@ -48,6 +51,23 @@ class BlurIconView: UIVisualEffectView
         hideAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
         hideAnimation.fillMode = CAMediaTimingFillMode.forwards
         hideAnimation.isRemovedOnCompletion = false
+        
+        if pulsing {
+            let iconSvgPathSmall = SVGBezierPath.pathsFromSVG(at: iconSvgUrl)[0]
+            let altSvgPath = UIBezierPath()
+            altSvgPath.usesEvenOddFillRule = true
+            altSvgPath.move(to: CGPoint(x: x, y: y))
+            iconSvgPathSmall.scaleAroundCenter(factor: 0.8)
+            altSvgPath.append(iconSvgPathSmall)
+            pulsingAnimation.toValue = altSvgPath.cgPath
+            pulsingAnimation.fromValue = svgPath.cgPath
+            pulsingAnimation.duration = 1.0
+            pulsingAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
+            pulsingAnimation.fillMode = CAMediaTimingFillMode.both
+            pulsingAnimation.isRemovedOnCompletion = false
+            pulsingAnimation.repeatCount = .infinity
+            pulsingAnimation.autoreverses = true
+        }
 
         maskLayer.path = svgPathEmpty.cgPath
         maskLayer.fillRule = CAShapeLayerFillRule.evenOdd
@@ -76,6 +96,12 @@ class BlurIconView: UIVisualEffectView
         guard !isShown else {return}
         isShown = true
         maskLayer.add(showAnimation, forKey: showAnimation.keyPath)
+    }
+    
+    public func pulse() {
+        guard !isPulsing else {return}
+        isPulsing = true
+        maskLayer.add(pulsingAnimation, forKey: pulsingAnimation.keyPath)
     }
     
     public func hide() {

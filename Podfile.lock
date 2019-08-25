@@ -1,28 +1,36 @@
 PODS:
   - Disk (0.6.3)
+  - KDCircularProgress (1.5.4)
   - PocketSVG (2.4.2)
   - RxSwift (5.0.0)
+  - SoundWave (0.1.4)
   - SpotlightLyrics (0.1.5)
 
 DEPENDENCIES:
   - Disk (~> 0.6.3)
+  - KDCircularProgress
   - PocketSVG (~> 2.4)
   - RxSwift (~> 5)
+  - SoundWave
   - SpotlightLyrics
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - Disk
+    - KDCircularProgress
     - PocketSVG
     - RxSwift
+    - SoundWave
     - SpotlightLyrics
 
 SPEC CHECKSUMS:
   Disk: 76cccb6fed1c27cd661bbdea7b117d887c2f72e5
+  KDCircularProgress: 98200c6b8e85d22bc04eb644721d3b1e12b0686b
   PocketSVG: c30139829206a43df2ec203880e3970531facba7
   RxSwift: 8b0671caa829a763bbce7271095859121cbd895f
+  SoundWave: d98ffaa863570b29d991da32a09b7ce1b4aaf2d4
   SpotlightLyrics: dd24e435678db20b476b454447e767f3f88f2b6e
 
-PODFILE CHECKSUM: e199666e4a40e0b9aa7b863ce8e4ba779c11959f
+PODFILE CHECKSUM: a151c36ff3c503343fd4c0e5c603216a5138ae1c
 
 COCOAPODS: 1.7.1

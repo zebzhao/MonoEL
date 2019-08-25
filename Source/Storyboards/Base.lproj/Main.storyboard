@@ -116,7 +116,7 @@
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                         <color key="tintColor" red="1" green="1" blue="1" alpha="0.55147688356164382" colorSpace="custom" customColorSpace="sRGB"/>
-                                        <state key="normal" title="Upload Image"/>
+                                        <state key="normal" title="Add Image"/>
                                         <connections>
                                             <action selector="uploadImageTouchUpInside:" destination="BYZ-38-t0r" eventType="touchUpInside" id="52D-eM-Jo8"/>
                                         </connections>
@@ -130,6 +130,19 @@
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
                             </imageView>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="3UF-D1-EAO">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Listening to what's playing around you..." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ngZ-GC-4pD">
+                                        <rect key="frame" x="25" y="120" width="325" height="66"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="24"/>
+                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </view>
                             <view opaque="NO" alpha="0.050000000000000003" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4Nw-Au-04l" customClass="VSSlider" customModule="Nebula" customModuleProvider="target">
                                 <rect key="frame" x="38" y="555" width="299" height="76"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
@@ -205,6 +218,8 @@
                         <outlet property="cancelLabel" destination="R8l-1y-VjR" id="toG-lA-cee"/>
                         <outlet property="deleteCollectionView" destination="yiI-bU-9TN" id="hbN-Zg-K3c"/>
                         <outlet property="detectLabel" destination="72A-7q-Gsi" id="kzK-Gb-N9X"/>
+                        <outlet property="detectView" destination="3UF-D1-EAO" id="JIh-QJ-P9d"/>
+                        <outlet property="detectViewLabel" destination="ngZ-GC-4pD" id="XYi-Y7-PKx"/>
                         <outlet property="imageView" destination="1AD-dg-ANv" id="ZTo-8f-uD8"/>
                         <outlet property="imageViewContainer" destination="0tG-un-9dD" id="e0J-xr-pyg"/>
                         <outlet property="photoView" destination="04W-eM-zss" id="Bmk-5V-J1A"/>
