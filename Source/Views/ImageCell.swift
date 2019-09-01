@@ -9,10 +9,8 @@ import UIKit
 
 class ImageCellDataSource: NSObject, UICollectionViewDataSource {
     var imageRefs: [ImageRef]
-    var view: UICollectionView
     
     init(view: UICollectionView, imageRefs: [ImageRef]) {
-        self.view = view
         self.imageRefs = imageRefs
         super.init()
         view.dataSource = self

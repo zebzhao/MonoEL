@@ -12,4 +12,5 @@ target 'Nebula' do
   pod 'Disk', '~> 0.6.3'
   pod 'SoundWave'
   pod 'KDCircularProgress'
+  pod 'RQShineLabel'
 end

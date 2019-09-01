@@ -9,7 +9,7 @@ import Foundation
 import Disk
 
 class DiskCatalog {
-    var controller: ViewController
+    weak var controller: ViewController?
     
     init(controller: ViewController) {
         self.controller = controller
@@ -76,6 +76,6 @@ class DiskCatalog {
     
     func showAlert(title: String, error: NSError) {
         let alertController = UIAlertController(title: title, message: error.localizedDescription, preferredStyle: .alert)
-        self.controller.present(alertController, animated: true, completion: nil)
+        self.controller!.present(alertController, animated: true, completion: nil)
     }
 }

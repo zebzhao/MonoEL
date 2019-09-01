@@ -7,6 +7,13 @@ import UIKit
 import RxSwift
 import SoundWave
 import KDCircularProgress
+import RQShineLabel
+
+enum DetectStatus {
+    case Verifying
+    case Detecting
+    case Downloading
+}
 
 class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate, RxMediaPickerDelegate
 {
@@ -26,7 +33,6 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBOutlet var powerOnIcon: UIImageView!
     @IBOutlet var backgroundImageView: UIImageView!
     @IBOutlet var detectView: UIView!
-    @IBOutlet var detectViewLabel: UILabel!
     
     let disposeBag = DisposeBag()
     let recordAudio = RecordAudio()
@@ -45,10 +51,16 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     var deleteIconView: BlurIconView!
     var detectIconView: BlurIconView!
     var progressBar: KDCircularProgress!
+    var shineLabel: RQShineLabel!
     
     var currentSongIdSubject = BehaviorSubject<String>(value: "default")
     var wallpaperIndex: Int = 0
     var time: Float = 1
+    var queuedText: String?
+    var queuedCompletion: (()->Void)!
+    var detectStatusClosure: (()->Void)!
+    var detectStatus: DetectStatus = .Verifying
+    var musicScore: Float = 0
     var stepIndex: Int = 0
     var transitionTime: CGFloat = 0.1
     var transitionTimeDelta: CGFloat = 0.0;
@@ -80,10 +92,12 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         setUpSlider()
         setUpPhotoView()
         setUpDetectView()
+        setUpShineLabel()
         setupCurrentSongIdSubject()
         
         // Default screen
         enterDetectView(detectOn: false)
+        animateTextChange("Welcome back, Elyn", completion: nil)
         
         blurView.effect = nil
         imageViewContainer.transform = CGAffineTransform.identity.scaledBy(x: scaleFactor, y: scaleFactor)
@@ -121,10 +135,11 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         let minBpm = min(90, Int(recordAudio.bpm))
         stepIndex += 1
         
-        if 24*stepIndex >= minBpm {
-            stepIndex = 0
+        if 24*stepIndex > minBpm {
             audioVisualizationView.add(meteringLevel: fmax(0.0, fmin(1.0, recordAudio.level/42.0 + 1.0)))
-            print(recordAudio.musicScore, recordAudio.notesOnBuffer.reduce(0.0, +), Float(recordAudio.notesOffBuffer.filter{$0}.count))
+            musicScore = recordAudio.musicScore
+            progressBar.angle = min(360.0, Double(musicScore*180.0))
+            stepIndex = 0
         }
     }
     
@@ -339,6 +354,19 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     // MARK:  Setup
     
+    func setUpShineLabel() {
+        let labelWidth: CGFloat = detectView.bounds.width - 60
+        let labelHeight: CGFloat = 120
+        shineLabel = RQShineLabel(frame: CGRect(x: detectView.bounds.midX - labelWidth/2, y: 0.3*detectView.bounds.height - labelHeight, width: labelWidth, height: labelHeight))
+        shineLabel.numberOfLines = 2
+        shineLabel.backgroundColor = UIColor.clear
+        shineLabel.fadeoutDuration = 1.0
+        shineLabel.shineDuration = 3.5
+        shineLabel.font = UIFont(name: "HelveticaNeue-Light", size: 26.0)
+        shineLabel.textAlignment = .center
+        view.addSubview(shineLabel)
+    }
+    
     func setupCurrentSongIdSubject() {
         currentSongIdSubject.subscribe({ (event) in
             let wallpaperRefs = self.diskCatalog.loadWallpaper(name: event.element!) ?? [ImageRef]()
@@ -384,6 +412,18 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     func setUpDetectView()
     {
+        detectStatusClosure = {
+            var text: String
+            switch self.detectStatus {
+            case .Downloading:
+                text = "Downloading the song's lyrics..."
+            case .Detecting:
+                text = "Detecting what's this song..."
+            case .Verifying:
+                text = "Listening to what's playing around you..."
+            }
+            self.animateTextChange(text, completion: self.detectStatusClosure)
+        }
         detectIconView = BlurIconView(forResource: "round_mic", x: detectView.bounds.midX - 30, y: 0.45*detectView.bounds.height - 30, pulsing: true)
         detectView.alpha = 0
         let size: CGFloat = 150.0
@@ -404,14 +444,12 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         progressBar = KDCircularProgress(frame: CGRect(x: detectView.bounds.midX - progressSize/2,
                                                        y: 0.45*detectView.bounds.height - progressSize/2,
                                                        width: progressSize, height: progressSize))
-        progressBar.startAngle = -90
         progressBar.progressThickness = 0.12
         progressBar.trackThickness = 0.0
         progressBar.clockwise = true
         progressBar.gradientRotateSpeed = 2
         progressBar.roundedCorners = false
         progressBar.glowMode = .constant
-        progressBar.angle = 270
         progressBar.roundedCorners = true
         progressBar.set(colors: UIColor(rgb: 0x30f5aa), UIColor(rgb: 0x61ebc3), UIColor(rgb: 0x5bedfc), UIColor(rgb: 0xdcf5fd))
         detectIconView.show(activate: true)
@@ -517,6 +555,30 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         }
     }
     
+    func animateTextChange(_ text: String?, completion: (()->Void)?)
+    {
+        queuedText = text
+        queuedCompletion = completion
+        if !shineLabel.isShining {
+            if shineLabel.isVisible {
+                shineLabel.fadeOut {
+                    if let qText = self.queuedText {
+                        self.shineLabel.text = qText
+                        self.shineLabel.shine(completion: self.queuedCompletion)
+                        self.queuedText = nil
+                    }
+                }
+            } else {
+                if let qText = text {
+                    shineLabel.text = qText
+                    shineLabel.shine(completion: queuedCompletion)
+                }
+                queuedText = nil
+                queuedCompletion = nil
+            }
+        }
+    }
+    
     // MARK:  Actions
     
     @IBAction func sliderValueChanged(_ sender: Any) {
@@ -535,6 +597,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             break
         case 0:
             micIconView.show(activate: true)
+            detectStatusClosure()
+            shineLabel.shine()
             micOffIconView.show()
             addPhotoIconView.hide()
             clearIconView.hide()
