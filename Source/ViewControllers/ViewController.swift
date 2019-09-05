@@ -8,11 +8,23 @@ import RxSwift
 import SoundWave
 import KDCircularProgress
 import RQShineLabel
+import MediaPlayer
+import MarqueeLabel
+import SpotlightLyrics
 
 enum DetectStatus {
+    case Stopped
     case Verifying
     case Detecting
     case Downloading
+}
+
+struct Song {
+    let title: String
+    let artist: String?
+    let id: String
+    var duration: TimeInterval?
+    var lyrics: String?
 }
 
 class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate, RxMediaPickerDelegate
@@ -33,9 +45,13 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBOutlet var powerOnIcon: UIImageView!
     @IBOutlet var backgroundImageView: UIImageView!
     @IBOutlet var detectView: UIView!
+    @IBOutlet var lyricsView: UIView!
+    @IBOutlet var songTitle: MarqueeLabel!
+    @IBOutlet var spotlightLyricsView: LyricsView!
     
     let disposeBag = DisposeBag()
     let recordAudio = RecordAudio()
+    let player = MPMusicPlayerController.systemMusicPlayer
     let blurEffect = UIBlurEffect(style: .dark)
     let scaleFactor: CGFloat = 3
     
@@ -53,13 +69,13 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     var progressBar: KDCircularProgress!
     var shineLabel: RQShineLabel!
     
-    var currentSongIdSubject = BehaviorSubject<String>(value: "default")
+    var currentSongSubject = BehaviorSubject<Song?>(value: nil)
     var wallpaperIndex: Int = 0
     var time: Float = 1
     var queuedText: String?
     var queuedCompletion: (()->Void)!
     var detectStatusClosure: (()->Void)!
-    var detectStatus: DetectStatus = .Verifying
+    var detectStatus: DetectStatus = .Stopped
     var musicScore: Float = 0
     var stepIndex: Int = 0
     var transitionTime: CGFloat = 0.1
@@ -93,7 +109,9 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         setUpPhotoView()
         setUpDetectView()
         setUpShineLabel()
-        setupCurrentSongIdSubject()
+        setupCurrentSongSubject()
+        setupMusicPlayer()
+        setupLyricsView()
         
         // Default screen
         enterDetectView(detectOn: false)
@@ -115,7 +133,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         resolution = CIVector(x: imageViewContainer.bounds.width, y: imageViewContainer.bounds.height)
     }
     
-    // MARK: Step
+    // MARK:  Step
     
     @objc func step()
     {
@@ -143,7 +161,49 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         }
     }
     
+    // MARK:  Observers
+    
+    @objc private func nowPlayingItemIsChanged(notification: NSNotification){
+        if let nowPlayingItem = player.nowPlayingItem, let title = nowPlayingItem.title {
+            let artist = nowPlayingItem.artist ?? "???"
+            let id = "\(artist) ~ \(title)"
+            if let songUrl = nowPlayingItem.assetURL {
+                let songAsset = AVURLAsset(url: songUrl, options: nil)
+                currentSongSubject.onNext(Song(title: title, artist: player.nowPlayingItem?.artist, id: id, duration: nowPlayingItem.playbackDuration, lyrics: songAsset.lyrics))
+            } else {
+                currentSongSubject.onNext(Song(title: title, artist: player.nowPlayingItem?.artist, id: id, duration: nowPlayingItem.playbackDuration, lyrics: ""))
+            }
+        }
+    }
+    
+    @objc private func playbackStateIsChanged(notification: NSNotification){
+        switch player.playbackState {
+        case .paused:
+            spotlightLyricsView.timer.pause()
+        case .playing:
+            spotlightLyricsView.timer.seek(toTime: player.currentPlaybackTime)
+            spotlightLyricsView.timer.play()
+        case .seekingBackward:
+            spotlightLyricsView.timer.seek(toTime: player.currentPlaybackTime)
+        case .seekingForward:
+            spotlightLyricsView.timer.seek(toTime: player.currentPlaybackTime)
+        case .stopped:
+            spotlightLyricsView.timer.pause()
+            spotlightLyricsView.timer.seek(toTime: 0)
+        case .interrupted:
+            spotlightLyricsView.timer.pause()
+            spotlightLyricsView.timer.seek(toTime: 0)
+        @unknown default:
+            spotlightLyricsView.timer.pause()
+        }
+    }
+    
     // MARK:  Delegates
+    
+    deinit {
+        player.endGeneratingPlaybackNotifications()
+        NotificationCenter.default.removeObserver(self)
+    }
     
     func present(picker: UIImagePickerController) {
         present(picker, animated: true, completion: nil)
@@ -264,7 +324,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
                     var imageRefsCopy = wallpaperImagesDataSource.imageRefs
                     imageRefsCopy.remove(at: sourceIndexPath.row)
                     imageRefsCopy.insert(item.dragItem.localObject as! ImageRef, at: dIndexPath.row)
-                    guard diskCatalog.saveWallpaper(name: try! currentSongIdSubject.value(), imageRefs: wallpaperImagesDataSource.imageRefs) else {return}
+                    let songId = (try? currentSongSubject.value()?.id) ?? "default"
+                    guard diskCatalog.saveWallpaper(name: songId, imageRefs: wallpaperImagesDataSource.imageRefs) else {return}
                     wallpaperImagesDataSource.imageRefs = imageRefsCopy
                 } else {
                     var imageRefsCopy = albumImagesDataSource.imageRefs
@@ -307,13 +368,14 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
                 if let index = itemSource.imageRefs.firstIndex(of: identifier) {
                     var imageRefsCopy = itemSource.imageRefs
                     let indexPath = IndexPath(row: index, section: 0)
+                    let songId = (try? currentSongSubject.value()?.id) ?? "default"
                     imageRefsCopy.remove(at: index)
                     guard (
                         itemSource == albumImagesDataSource &&
                             diskCatalog.deleteImage(relativePath: identifier.path) &&
                             diskCatalog.saveAlbum(imageRefs: imageRefsCopy)) ||
                         (itemSource == wallpaperImagesDataSource &&
-                            diskCatalog.saveWallpaper(name: try! currentSongIdSubject.value(), imageRefs: imageRefsCopy))
+                            diskCatalog.saveWallpaper(name: songId, imageRefs: imageRefsCopy))
                         else {return}
                     itemSource.imageRefs = imageRefsCopy
                     itemSourceView.deleteItems(at: [indexPath])
@@ -332,7 +394,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
                 if collectionView === wallpaperCollectionView {
                     var imageRefsCopy = wallpaperImagesDataSource.imageRefs
                     imageRefsCopy.insert(item.dragItem.localObject as! ImageRef, at: indexPath.row)
-                    guard diskCatalog.saveWallpaper(name: try! currentSongIdSubject.value(), imageRefs: imageRefsCopy) else {continue}
+                    let songId = (try? currentSongSubject.value()?.id) ?? "default"
+                    guard diskCatalog.saveWallpaper(name: songId, imageRefs: imageRefsCopy) else {continue}
                     wallpaperImagesDataSource.imageRefs = imageRefsCopy
                     indexPaths.append(indexPath)
                 } else if collectionView === deleteCollectionView {
@@ -354,6 +417,20 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     // MARK:  Setup
     
+    func setupMusicPlayer() {
+        player.beginGeneratingPlaybackNotifications()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.nowPlayingItemIsChanged(notification:)),
+            name: NSNotification.Name.MPMusicPlayerControllerNowPlayingItemDidChange,
+            object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.playbackStateIsChanged(notification:)),
+            name: NSNotification.Name.MPMusicPlayerControllerPlaybackStateDidChange,
+            object: nil)
+    }
+    
     func setUpShineLabel() {
         let labelWidth: CGFloat = detectView.bounds.width - 60
         let labelHeight: CGFloat = 120
@@ -364,15 +441,17 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         shineLabel.shineDuration = 3.5
         shineLabel.font = UIFont(name: "HelveticaNeue-Light", size: 26.0)
         shineLabel.textAlignment = .center
-        view.addSubview(shineLabel)
+        view.insertSubview(shineLabel, belowSubview: blurView)
     }
     
-    func setupCurrentSongIdSubject() {
-        currentSongIdSubject.subscribe({ (event) in
-            let wallpaperRefs = self.diskCatalog.loadWallpaper(name: event.element!) ?? [ImageRef]()
+    func setupCurrentSongSubject() {
+        currentSongSubject.subscribe({ (event) in
+            let songId = event.element??.id ?? "default"
+            let wallpaperRefs = self.diskCatalog.loadWallpaper(name: songId) ?? [ImageRef]()
             self.wallpaperIndex = 0
             self.wallpaperImagesDataSource.imageRefs = wallpaperRefs
             self.wallpaperCollectionView.reloadData()
+            self.spotlightLyricsView.lyrics = event.element??.lyrics
             self.backgroundImageView.animateImageRefs(next: { () -> ImageRef? in
                 let imageRefs = self.wallpaperImagesDataSource.imageRefs // Tricky: as this might be reassigned
                 let wallpaperIndex = self.wallpaperIndex >= imageRefs.count - 1 ? 0 : self.wallpaperIndex
@@ -382,6 +461,14 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             })
         })
             .disposed(by: disposeBag)
+    }
+    
+    func setupLyricsView() {
+        spotlightLyricsView.lyricFont = UIFont.systemFont(ofSize: 15)
+        spotlightLyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.5)
+        spotlightLyricsView.lyricHighlightedFont = UIFont.systemFont(ofSize: 15)
+        spotlightLyricsView.lyricHighlightedTextColor = UIColor.white
+        spotlightLyricsView.lineSpacing = 11
     }
     
     func setUpPhotoView() {
@@ -404,7 +491,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         
         diskCatalog = DiskCatalog(controller: self)
         let albumRefs = diskCatalog.loadAlbum() ?? [ImageRef("WP_Beach"), ImageRef("WP_Coast"), ImageRef("WP_Mountain"), ImageRef("WP_Ocean"), ImageRef("WP_Sakura"), ImageRef("WP_Stars")]
-        let wallpaperRefs = diskCatalog.loadWallpaper(name: try! currentSongIdSubject.value()) ?? [ImageRef]()
+        let songId = (try? currentSongSubject.value()?.id) ?? "default"
+        let wallpaperRefs = diskCatalog.loadWallpaper(name: songId) ?? [ImageRef]()
         albumImagesDataSource = ImageCellDataSource(view: albumCollectionView, imageRefs: albumRefs)
         wallpaperImagesDataSource = ImageCellDataSource(view: wallpaperCollectionView, imageRefs: wallpaperRefs)
         deleteImagesDataSource = ImageCellDataSource(view: deleteCollectionView, imageRefs: [ImageRef]())
@@ -413,7 +501,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     func setUpDetectView()
     {
         detectStatusClosure = {
-            var text: String
+            var text: String?
             switch self.detectStatus {
             case .Downloading:
                 text = "Downloading the song's lyrics..."
@@ -421,6 +509,8 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
                 text = "Detecting what's this song..."
             case .Verifying:
                 text = "Listening to what's playing around you..."
+            case .Stopped:
+                text = nil
             }
             self.animateTextChange(text, completion: self.detectStatusClosure)
         }
@@ -479,8 +569,11 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     func createAlbumViewGradient() -> CAGradientLayer
     {
         let bounds = albumCollectionViewContainer.bounds
-        let invertedBoundHeight = 1/bounds.height
-        let locations = [35.0*invertedBoundHeight, 80.0*invertedBoundHeight, 1.0 - 80.0*invertedBoundHeight, 1.0 - 35.0*invertedBoundHeight] as [NSNumber]
+        let invertedBoundHeight = Float(1/bounds.height)
+        let locations = [NSNumber(value: 35.0*invertedBoundHeight),
+                         NSNumber(value: 80.0*invertedBoundHeight),
+                         NSNumber(value: 1.0 - 80.0*invertedBoundHeight),
+                         NSNumber(value: 1.0 - 35.0*invertedBoundHeight)]
         let gradient = CAGradientLayer()
         gradient.frame = bounds;
         gradient.colors = [UIColor.clear.cgColor, UIColor.black.cgColor, UIColor.black.cgColor, UIColor.clear.cgColor];
@@ -500,6 +593,31 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     }
     
     // MARK:  Transitions
+    
+    func enterLyricView()
+    {
+        UIView.animate(withDuration: 0.5) {
+            self.lyricsView.alpha = 1.0
+        }
+    }
+    
+    func exitLyricView()
+    {
+        UIView.animate(withDuration: 0.5) {
+            self.lyricsView.alpha = 0.0
+        }
+    }
+    
+    func enterHomeScreen()
+    {
+        let songId = (try? currentSongSubject.value()?.id) ?? "default"
+        if songId == "default" {
+            enterDetectView(detectOn: false)
+        } else {
+            exitDetectView()
+            enterLyricView()
+        }
+    }
     
     func enterDetectView(detectOn: Bool = false)
     {
@@ -584,6 +702,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBAction func sliderValueChanged(_ sender: Any) {
         switch(slider.roundedValue) {
         case 1.0:
+            detectStatus = .Stopped
             micIconView.hide()
             micOffIconView.hide()
             addPhotoIconView.hide()
@@ -592,12 +711,13 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             photosLabel.fadeOut()
             cancelLabel.fadeOut()
             blurOutPhotoView()
-            enterDetectView(detectOn: false)
+            enterHomeScreen()
             fadeOutSlider(true)
             break
         case 0:
-            micIconView.show(activate: true)
+            detectStatus = .Verifying
             detectStatusClosure()
+            micIconView.show(activate: true)
             shineLabel.shine()
             micOffIconView.show()
             addPhotoIconView.hide()
@@ -607,9 +727,11 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             photosLabel.fadeOut()
             blurOutPhotoView()
             enterDetectView(detectOn: true)
+            exitLyricView()
             fadeOutSlider(false)
             break
         case 2.0:
+            detectStatus = .Stopped
             micIconView.hide()
             micOffIconView.hide()
             addPhotoIconView.show(activate: true)
@@ -619,6 +741,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             detectLabel.fadeOut()
             blurInPhotoView()
             exitDetectView()
+            exitLyricView()
             fadeOutSlider(false)
             break
         default:

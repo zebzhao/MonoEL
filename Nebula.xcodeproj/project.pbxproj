@@ -27,6 +27,7 @@
 		FD47B10823102BA80006BEC0 /* AveragingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B10723102BA80006BEC0 /* AveragingBuffer.swift */; };
 		FD47B10A2311BE8D0006BEC0 /* round_mic.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD47B1092311BE8D0006BEC0 /* round_mic.svg */; };
 		FD47B10C2312F2600006BEC0 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */; };
+		FD47B112231E138E0006BEC0 /* LrcDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B111231E138E0006BEC0 /* LrcDownloader.swift */; };
 		FD946AC822D52411002CD027 /* VSSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946AC722D52411002CD027 /* VSSlider.swift */; };
 		FD946AD022D5268E002CD027 /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD946ACF22D5268E002CD027 /* aubio.framework */; };
 		FD946ADC22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */; };
@@ -66,6 +67,7 @@
 		FD47B10723102BA80006BEC0 /* AveragingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AveragingBuffer.swift; sourceTree = "<group>"; };
 		FD47B1092311BE8D0006BEC0 /* round_mic.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = round_mic.svg; sourceTree = "<group>"; };
 		FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
+		FD47B111231E138E0006BEC0 /* LrcDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LrcDownloader.swift; sourceTree = "<group>"; };
 		FD946AC722D52411002CD027 /* VSSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VSSlider.swift; sourceTree = "<group>"; };
 		FD946ACF22D5268E002CD027 /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Libs/aubio.framework; sourceTree = "<group>"; };
 		FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBezierPath+scaleAroundCenter.swift"; sourceTree = "<group>"; };
@@ -199,6 +201,7 @@
 				FD47B0FB22FA6D5B0006BEC0 /* DiskCatalog.swift */,
 				FD47B0FD230BB2A10006BEC0 /* DateUtil.swift */,
 				FD47B10723102BA80006BEC0 /* AveragingBuffer.swift */,
+				FD47B111231E138E0006BEC0 /* LrcDownloader.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -331,8 +334,10 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Nebula/Pods-Nebula-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/Disk/Disk.framework",
 				"${BUILT_PRODUCTS_DIR}/KDCircularProgress/KDCircularProgress.framework",
+				"${BUILT_PRODUCTS_DIR}/MarqueeLabel/MarqueeLabel.framework",
 				"${BUILT_PRODUCTS_DIR}/PocketSVG/PocketSVG.framework",
 				"${BUILT_PRODUCTS_DIR}/RQShineLabel/RQShineLabel.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
@@ -341,8 +346,10 @@
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Disk.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KDCircularProgress.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MarqueeLabel.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PocketSVG.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RQShineLabel.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
@@ -371,6 +378,7 @@
 				FD946AF622E4FC38002CD027 /* UILabel+Fade.swift in Sources */,
 				FD47B10823102BA80006BEC0 /* AveragingBuffer.swift in Sources */,
 				FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */,
+				FD47B112231E138E0006BEC0 /* LrcDownloader.swift in Sources */,
 				FD9FE1FB22E738370037D1D1 /* ImageCell.swift in Sources */,
 				FD47B104230ED0120006BEC0 /* UIImage+FixOrientation.swift in Sources */,
 				FD47B102230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift in Sources */,

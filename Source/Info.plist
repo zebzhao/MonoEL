@@ -2,8 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSDocumentsFolderUsageDescription</key>
-    <string>Use documents to save wallpapers</string>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
+	<key>CFBundleDisplayName</key>
+	<string></string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Use documents to save wallpapers</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>Use media library to upload images</string>
 	<key>CFBundleDevelopmentRegion</key>

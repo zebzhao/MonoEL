@@ -13,4 +13,6 @@ target 'Nebula' do
   pod 'SoundWave'
   pod 'KDCircularProgress'
   pod 'RQShineLabel'
+  pod 'MarqueeLabel'
+  pod 'Alamofire', '~> 5.0.0-beta.7'
 end
