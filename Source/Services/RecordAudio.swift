@@ -30,26 +30,16 @@ final class RecordAudio: NSObject {
     let onThres: Float = 0.6
     
     var level: Float = 0
-    var levelBuffer = AveragingBuffer(length: 5, repeating: 0, noAveragingAtStart: true)
+    var levelBuffer = AveragingBuffer(length: 20, repeating: 0, noAveragingAtStart: true)
     var lossFac: Float = 0.99
     var bpm: Float = 100.0
-    var bpmBuffer = AveragingBuffer(length: 8, repeating: 0, noAveragingAtStart: false)
+    var bpmBuffer = AveragingBuffer(length: 10, repeating: 0, noAveragingAtStart: false)
     var avgNotesBuffer = AveragingBuffer(length: 8, repeating: 0, noAveragingAtStart: true)
-    var musicScoreBuffer = AveragingBuffer(length: 32, repeating: 0, noAveragingAtStart: false)
-    var musicScoreBuffer2 = AveragingBuffer(length: 32, repeating: 0, noAveragingAtStart: true)
     var notesBuffer = [Float](repeating: 0.0, count: 12)
     var notesOnBuffer = [Float](repeating: 0.0, count: 12)
     var notesOffBuffer = [Bool](repeating: false, count: 12)
     var lastNote: Float = -1
     var audioUnit: AudioUnit? = nil
-    
-    var musicScore: Float {
-        get {
-            musicScoreBuffer.update(value: fmax(0, level/90 + 0.9)*(notesOnBuffer.reduce(0.0, +) + Float(notesOffBuffer.filter{$0}.count)))
-            musicScoreBuffer2.update(value: musicScoreBuffer.average)
-            return musicScoreBuffer2.average
-        }
-    }
     
     var micPermission   =  false
     var sessionActive   =  false

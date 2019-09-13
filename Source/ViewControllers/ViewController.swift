@@ -5,12 +5,9 @@
 
 import UIKit
 import RxSwift
-import SoundWave
 import KDCircularProgress
 import RQShineLabel
 import MediaPlayer
-import MarqueeLabel
-import SpotlightLyrics
 
 enum DetectStatus {
     case Stopped
@@ -19,12 +16,30 @@ enum DetectStatus {
     case Downloading
 }
 
-struct Song {
-    let title: String
+class Song {
+    let title: String?
     let artist: String?
-    let id: String
-    var duration: TimeInterval?
-    var lyrics: String?
+    let duration: Int?
+    let lyrics: String?
+    
+    var id: String {
+        get {
+            return "\(artist ?? "") ~ \(title ?? "") ~ \(duration ?? 0)"
+        }
+    }
+    
+    var display: String {
+        get {
+            return "\(title ?? "")\(artist != nil ? " ⁓ " : "")\(artist ?? "")"
+        }
+    }
+    
+    init(title: String?, artist: String?, duration: Int?, lyrics: String?) {
+        self.title = title
+        self.artist = artist
+        self.duration = duration
+        self.lyrics = lyrics
+    }
 }
 
 class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate, RxMediaPickerDelegate
@@ -46,16 +61,23 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBOutlet var backgroundImageView: UIImageView!
     @IBOutlet var detectView: UIView!
     @IBOutlet var lyricsView: UIView!
-    @IBOutlet var songTitle: MarqueeLabel!
-    @IBOutlet var spotlightLyricsView: LyricsView!
+    @IBOutlet var songTitleLabel: RQShineLabel!
+    @IBOutlet var scrollingLyricsView: LyricsView!
+    @IBOutlet var scrollingLyricsViewContainer: UIView!
     
     let disposeBag = DisposeBag()
     let recordAudio = RecordAudio()
+    let lrcDownloader = LrcDownloader([MiguSource(), NetEaseSource(), GecimiSource(), GecimiRelaxSource()])
+    let greeting1 = ["嗨! 動動", "Hi⁓", "嘿⁓", "Selamat pagi!", "Hey, hey, beautiful!", "Heya!", "嘿嘿, 美丽的", "Yo, over here!", "Hola⁓", "你好!", "Aloha Kakahiaka!"]
+    let greeting2 = ["Sing a song!", "Say something...", "Sounding perfect!", "好久不见!", "Welcome back!", "Play with me!", "Missed you angel⁓", "Looking beautiful as always!", "好聽, 好聽!",
+        "Long time no see!", "Play me a song!", "Gimme some music!", "發一首歌 DJ!", "來一首歌!"]
+    let defaultAlbumRefList = [ImageRef("WP_Beach"), ImageRef("WP_Road"), ImageRef("WP_Coast"), ImageRef("WP_Mountain"), ImageRef("WP_Ocean"), ImageRef("WP_Balloons"), ImageRef("WP_Dawn"), ImageRef("WP_Stars"), ImageRef("WP_Waves")]
     let player = MPMusicPlayerController.systemMusicPlayer
     let blurEffect = UIBlurEffect(style: .dark)
     let scaleFactor: CGFloat = 3
+    let paragraphStyle = NSMutableParagraphStyle()
     
-    var audioVisualizationView: AudioVisualizationView!
+    var audioVisualizationView: SwiftSiriWaveformView!
     var diskCatalog: DiskCatalog!
     var albumImagesDataSource: ImageCellDataSource!
     var wallpaperImagesDataSource: ImageCellDataSource!
@@ -67,7 +89,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     var deleteIconView: BlurIconView!
     var detectIconView: BlurIconView!
     var progressBar: KDCircularProgress!
-    var shineLabel: RQShineLabel!
+    var shineLabel: ShineLabel!
     
     var currentSongSubject = BehaviorSubject<Song?>(value: nil)
     var wallpaperIndex: Int = 0
@@ -101,9 +123,16 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         return .lightContent
     }
     
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        
+        paragraphStyle.firstLineHeadIndent = 0
+        paragraphStyle.headIndent = 12
         
         setUpSlider()
         setUpPhotoView()
@@ -115,7 +144,12 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         
         // Default screen
         enterDetectView(detectOn: false)
-        animateTextChange("Welcome back, Elyn", completion: nil)
+        animateTextChange(greeting1.randomElement()) {
+            self.animateTextChange(self.greeting2.randomElement(), completion: {
+                self.fadeOutText(duration: 1.5, delay: 2.5)
+                //self.syncNowPlayingItem()
+            })
+        }
         
         blurView.effect = nil
         imageViewContainer.transform = CGAffineTransform.identity.scaledBy(x: scaleFactor, y: scaleFactor)
@@ -124,6 +158,91 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         displayLink.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
         
         recordAudio.startRecording()
+        
+        currentSongSubject.onNext(Song(title: "Test 12345 Test 12345 Test 12345", artist: "Test", duration: 200, lyrics: """
+                    [ti:爱情之所以为爱情]
+                    [ar:梁静茹]
+                    [al:静茹&情歌 别再为他流泪]
+                    [by:william王子]
+                    [01:51.33][00:02.30]梁静茹-爱情之所以为爱情
+                    [01:59.15][00:08.66]作词:黄婷 作曲:周谷淳
+                    [00:13.92]编曲：史卡非
+                    [01:46.52]专辑：静茹&情歌 别再为他流泪
+                    [00:16.63]
+                    [00:18.81]买CD
+                    [00:19.44]把你的声音丢在角落
+                    [00:22.92]看电影
+                    [00:23.91]到结局总是配角的错
+                    [00:27.98]你要的故事 让你去说
+                    [00:32.44]我要的生活 我好好过
+                    [00:35.68]
+                    [00:36.12]写日记
+                    [00:37.41]写不出是谁的感受
+                    [00:40.60]夜空里
+                    [00:41.69]每个人占有一个星座
+                    [00:45.07]你到底懂不懂
+                    [00:48.50]我只要一点温热的触碰
+                    [00:53.84]
+                    [00:56.12]你到底懂不懂
+                    [00:59.63]有些话 并不是
+                    [01:01.99]一定要说
+                    [01:04.67]
+                    [01:08.08]你总说爱情之所以为爱情
+                    [01:10.89]是用来挥霍
+                    [01:12.81]你总是漫不在乎
+                    [01:14.77]当我看著自己的稀薄
+                    [01:17.61]你编织的感觉难以捉摸
+                    [01:21.86]你比我的梦境还困惑
+                    [01:25.59]
+                    [01:25.98]我看见爱情之所以为爱情
+                    [01:28.77]谁都在挥霍
+                    [01:30.55]我想的天长地久
+                    [01:32.55]也许只是时间的荒谬
+                    [01:35.33]我沉迷的感动与你不同
+                    [01:39.54]我的了解让我自由
+                    [02:06.26][01:56.74][01:44.14]
+                    [02:17.50]一场雨
+                    [02:18.62]有时候下得不是时候
+                    [02:21.92]就像你
+                    [02:23.13]说难过不是真的难过
+                    [02:26.26]你到底懂不懂
+                    [02:29.61]我只要一个安稳的等候
+                    [02:34.64]
+                    [02:37.42]你到底懂不懂
+                    [02:40.69]想你想得好像
+                    [02:43.50]空气都停了
+                    [02:47.87]
+                    [02:49.32]你总说爱情之所以为爱情
+                    [02:52.03]是用来挥霍
+                    [02:53.82]你总是漫不在乎
+                    [02:55.96]当我看著自己的稀薄
+                    [02:58.69]你编织的感觉难以捉摸
+                    [03:03.00]你比我的梦境还困惑
+                    [03:06.57]
+                    [03:06.88]我看见爱情之所以为爱情
+                    [03:09.79]谁都在挥霍
+                    [03:12.07]我想的天长地久
+                    [03:13.76]也许只是时间的荒谬
+                    [03:16.44]我沉迷的感动 与你不同
+                    [03:20.74]我的了解让我自由
+                    [03:24.67]你总说爱情之所以为爱情
+                    [03:27.54]是用来挥霍
+                    [03:29.41]你总是漫不在乎
+                    [03:31.39]当我看著自己的稀薄
+                    [03:34.54]你编织的感觉难以捉摸
+                    [03:38.67]你比我的梦境还困惑
+                    [03:41.91]
+                    [03:42.32]我看见爱情之所以为爱情
+                    [03:45.35]谁都在挥霍
+                    [03:47.20]我想的天长地久
+                    [03:49.23]也许只是时间的荒谬
+                    [03:51.92]我沉迷的感动 与你不同
+                    [03:56.39]我的了解让我自由
+                    [04:00.98]我沉迷的感动 与你不同
+                    [04:06.91]我的了解让我自由
+                    [04:12.30]
+
+                    """))
     }
     
     override func viewDidLayoutSubviews()
@@ -149,53 +268,67 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         let image = defaultKernel.apply(extent: imageView.bounds, arguments: args)
         
         imageView.image = image
-        
-        let minBpm = min(90, Int(recordAudio.bpm))
-        stepIndex += 1
-        
-        if 24*stepIndex > minBpm {
-            audioVisualizationView.add(meteringLevel: fmax(0.0, fmin(1.0, recordAudio.level/42.0 + 1.0)))
-            musicScore = recordAudio.musicScore
-            progressBar.angle = min(360.0, Double(musicScore*180.0))
-            stepIndex = 0
-        }
+
+        audioVisualizationView.amplitude = max(audioVisualizationView.amplitude*0.985, CGFloat(fmax(0.0, fmin(1.0, recordAudio.level/36.0 + 1.0))))
     }
     
     // MARK:  Observers
     
-    @objc private func nowPlayingItemIsChanged(notification: NSNotification){
+    private func updateNowPlayingItem() {
         if let nowPlayingItem = player.nowPlayingItem, let title = nowPlayingItem.title {
-            let artist = nowPlayingItem.artist ?? "???"
-            let id = "\(artist) ~ \(title)"
-            if let songUrl = nowPlayingItem.assetURL {
-                let songAsset = AVURLAsset(url: songUrl, options: nil)
-                currentSongSubject.onNext(Song(title: title, artist: player.nowPlayingItem?.artist, id: id, duration: nowPlayingItem.playbackDuration, lyrics: songAsset.lyrics))
+            let durationInMs = Int(nowPlayingItem.playbackDuration*1000)
+            if let candidate = diskCatalog.loadCandidate(song: title, singer: nowPlayingItem.artist, durationInMs: durationInMs) {
+                self.currentSongSubject.onNext(Song(title: candidate.song, artist: candidate.singer, duration: candidate.duration, lyrics: candidate.lyrics))
             } else {
-                currentSongSubject.onNext(Song(title: title, artist: player.nowPlayingItem?.artist, id: id, duration: nowPlayingItem.playbackDuration, lyrics: ""))
+                lrcDownloader.getLyrics(song: title, singer: nowPlayingItem.artist, durationInMs: durationInMs, complete: { (candidate) in
+                    if let can=candidate {
+                        self.currentSongSubject.onNext(Song(title: can.song, artist: can.singer, duration: can.duration, lyrics: can.lyrics))
+                        if can.lyrics != nil {
+                            self.diskCatalog.saveCandidate(song: title, singer: nowPlayingItem.artist, durationInMs: durationInMs, candidate: can)
+                        }
+                    } else {
+                        self.currentSongSubject.onNext(nil)
+                    }
+                })
             }
         }
     }
     
-    @objc private func playbackStateIsChanged(notification: NSNotification){
+    func syncNowPlayingItem() {
         switch player.playbackState {
         case .paused:
-            spotlightLyricsView.timer.pause()
+            scrollingLyricsView.timer.pause()
         case .playing:
-            spotlightLyricsView.timer.seek(toTime: player.currentPlaybackTime)
-            spotlightLyricsView.timer.play()
+            if let songTitle = try? currentSongSubject.value()?.title,
+                let nowPlayingItemTitle = player.nowPlayingItem?.title {
+                print("playing", songTitle, nowPlayingItemTitle, songTitle == nowPlayingItemTitle)
+                if songTitle != nowPlayingItemTitle {
+                    updateNowPlayingItem()
+                }
+            }
+            scrollingLyricsView.timer.seek(toTime: player.currentPlaybackTime)
+            scrollingLyricsView.timer.play()
         case .seekingBackward:
-            spotlightLyricsView.timer.seek(toTime: player.currentPlaybackTime)
+            scrollingLyricsView.timer.seek(toTime: player.currentPlaybackTime)
         case .seekingForward:
-            spotlightLyricsView.timer.seek(toTime: player.currentPlaybackTime)
+            scrollingLyricsView.timer.seek(toTime: player.currentPlaybackTime)
         case .stopped:
-            spotlightLyricsView.timer.pause()
-            spotlightLyricsView.timer.seek(toTime: 0)
+            scrollingLyricsView.timer.pause()
+            scrollingLyricsView.timer.seek(toTime: 0)
         case .interrupted:
-            spotlightLyricsView.timer.pause()
-            spotlightLyricsView.timer.seek(toTime: 0)
+            scrollingLyricsView.timer.pause()
+            scrollingLyricsView.timer.seek(toTime: 0)
         @unknown default:
-            spotlightLyricsView.timer.pause()
+            scrollingLyricsView.timer.pause()
         }
+    }
+    
+    @objc private func nowPlayingItemIsChanged(notification: NSNotification){
+        syncNowPlayingItem()
+    }
+    
+    @objc private func playbackStateIsChanged(notification: NSNotification){
+        syncNowPlayingItem()
     }
     
     // MARK:  Delegates
@@ -434,7 +567,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     func setUpShineLabel() {
         let labelWidth: CGFloat = detectView.bounds.width - 60
         let labelHeight: CGFloat = 120
-        shineLabel = RQShineLabel(frame: CGRect(x: detectView.bounds.midX - labelWidth/2, y: 0.3*detectView.bounds.height - labelHeight, width: labelWidth, height: labelHeight))
+        shineLabel = ShineLabel(frame: CGRect(x: detectView.bounds.midX - labelWidth/2, y: 0.3*detectView.bounds.height - labelHeight, width: labelWidth, height: labelHeight))
         shineLabel.numberOfLines = 2
         shineLabel.backgroundColor = UIColor.clear
         shineLabel.fadeoutDuration = 1.0
@@ -447,32 +580,44 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     func setupCurrentSongSubject() {
         currentSongSubject.subscribe({ (event) in
             let songId = event.element??.id ?? "default"
-            let wallpaperRefs = self.diskCatalog.loadWallpaper(name: songId) ?? [ImageRef]()
+            let wallpaperRefs = self.loadWallpaperRefs(songId: songId)
             self.wallpaperIndex = 0
             self.wallpaperImagesDataSource.imageRefs = wallpaperRefs
             self.wallpaperCollectionView.reloadData()
-            self.spotlightLyricsView.lyrics = event.element??.lyrics
+            self.songTitleLabel.attributedText = NSAttributedString(string: event.element??.display ?? "", attributes: [.paragraphStyle : self.paragraphStyle])
+            self.songTitleLabel.shine()
+            self.scrollingLyricsView.lyrics = event.element??.lyrics
             self.backgroundImageView.animateImageRefs(next: { () -> ImageRef? in
                 let imageRefs = self.wallpaperImagesDataSource.imageRefs // Tricky: as this might be reassigned
-                let wallpaperIndex = self.wallpaperIndex >= imageRefs.count - 1 ? 0 : self.wallpaperIndex
+                let wallpaperIndex = self.wallpaperIndex >= imageRefs.count ? 0 : self.wallpaperIndex
                 let imageRef = imageRefs.indices.contains(wallpaperIndex) ? imageRefs[wallpaperIndex] : nil
                 self.wallpaperIndex = wallpaperIndex + 1
                 return imageRef
             })
+            self.scrollingLyricsView.timer.play()
+            self.enterHomeScreen()
         })
             .disposed(by: disposeBag)
     }
     
     func setupLyricsView() {
-        spotlightLyricsView.lyricFont = UIFont.systemFont(ofSize: 15)
-        spotlightLyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.5)
-        spotlightLyricsView.lyricHighlightedFont = UIFont.systemFont(ofSize: 15)
-        spotlightLyricsView.lyricHighlightedTextColor = UIColor.white
-        spotlightLyricsView.lineSpacing = 11
+        songTitleLabel.numberOfLines = 2
+        songTitleLabel.backgroundColor = UIColor.clear
+        songTitleLabel.fadeoutDuration = 1.0
+        songTitleLabel.shineDuration = 2.5
+        songTitleLabel.font = UIFont(name: "HelveticaNeue-Light", size: 26.0)
+        songTitleLabel.textAlignment = .left
+        scrollingLyricsView.lyricFont = UIFont.systemFont(ofSize: 25)
+        scrollingLyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.777)
+        scrollingLyricsView.lyricHighlightedFont = UIFont.systemFont(ofSize: 25)
+        scrollingLyricsView.lyricHighlightedTextColor = UIColor.white
+        scrollingLyricsView.backgroundColor = UIColor.clear
+        scrollingLyricsView.lineSpacing = 25
+        scrollingLyricsViewContainer.layer.mask = createScrollingLyricViewGradient()
     }
     
     func setUpPhotoView() {
-        photoView.alpha = 0
+        photoView.alpha = 0.0
         albumCollectionView.dragInteractionEnabled = true
         albumCollectionView.dragDelegate = self
         albumCollectionView.dropDelegate = self
@@ -490,12 +635,11 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         photoView.addSubview(deleteIconView)
         
         diskCatalog = DiskCatalog(controller: self)
-        let albumRefs = diskCatalog.loadAlbum() ?? [ImageRef("WP_Beach"), ImageRef("WP_Coast"), ImageRef("WP_Mountain"), ImageRef("WP_Ocean"), ImageRef("WP_Sakura"), ImageRef("WP_Stars")]
-        let songId = (try? currentSongSubject.value()?.id) ?? "default"
-        let wallpaperRefs = diskCatalog.loadWallpaper(name: songId) ?? [ImageRef]()
-        albumImagesDataSource = ImageCellDataSource(view: albumCollectionView, imageRefs: albumRefs)
-        wallpaperImagesDataSource = ImageCellDataSource(view: wallpaperCollectionView, imageRefs: wallpaperRefs)
         deleteImagesDataSource = ImageCellDataSource(view: deleteCollectionView, imageRefs: [ImageRef]())
+        let albumRefs = diskCatalog.loadAlbum() ?? defaultAlbumRefList
+        albumImagesDataSource = ImageCellDataSource(view: albumCollectionView, imageRefs: albumRefs)
+        let songId = (try? currentSongSubject.value()?.id) ?? "default"
+        self.loadWallpaperRefs(songId: songId)
     }
     
     func setUpDetectView()
@@ -512,22 +656,21 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
             case .Stopped:
                 text = nil
             }
-            self.animateTextChange(text, completion: self.detectStatusClosure)
+            if text == nil {
+                self.fadeOutText()
+            } else {
+                self.animateTextChange(text, completion: self.detectStatusClosure)
+            }
         }
         detectIconView = BlurIconView(forResource: "round_mic", x: detectView.bounds.midX - 30, y: 0.45*detectView.bounds.height - 30, pulsing: true)
         detectView.alpha = 0
         let size: CGFloat = 150.0
-        audioVisualizationView = AudioVisualizationView(
+        audioVisualizationView = SwiftSiriWaveformView(
             frame: CGRect(x: detectView.bounds.midX - size/2,
                           y: 0.45*detectView.bounds.height - size/2,
                           width: size, height: size))
-        audioVisualizationView.meteringLevelBarWidth = 5.0
-        audioVisualizationView.meteringLevelBarInterItem = 1.0
-        audioVisualizationView.meteringLevelBarCornerRadius = 2.0
-        audioVisualizationView.audioVisualizationMode = .write
+        audioVisualizationView.amplitude = 0.0
         audioVisualizationView.backgroundColor = UIColor.black.withAlphaComponent(0.6);
-        audioVisualizationView.gradientStartColor = UIColor.white.withAlphaComponent(0.9)
-        audioVisualizationView.gradientEndColor = UIColor.white.withAlphaComponent(0.6)
         audioVisualizationView.addCircularBorder(color: UIColor.white.withAlphaComponent(0.8), lineWidth: 12)
         audioVisualizationView.layer.mask = createAudioVisualizerGradient()
         let progressSize = size + 20
@@ -581,6 +724,21 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         return gradient
     }
     
+    func createScrollingLyricViewGradient() -> CAGradientLayer
+    {
+        let bounds = scrollingLyricsView.bounds
+        let invertedBoundHeight = Float(1/bounds.height)
+        let locations = [NSNumber(value: 35.0*invertedBoundHeight),
+                         NSNumber(value: 80.0*invertedBoundHeight),
+                         NSNumber(value: 1.0 - 80.0*invertedBoundHeight),
+                         NSNumber(value: 1.0 - 35.0*invertedBoundHeight)]
+        let gradient = CAGradientLayer()
+        gradient.frame = bounds;
+        gradient.colors = [UIColor.clear.cgColor, UIColor.black.cgColor, UIColor.black.cgColor, UIColor.clear.cgColor];
+        gradient.locations = locations
+        return gradient
+    }
+    
     func createAudioVisualizerGradient() -> CAGradientLayer
     {
         let gradient = CAGradientLayer()
@@ -597,6 +755,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     func enterLyricView()
     {
         UIView.animate(withDuration: 0.5) {
+            self.shineLabel.alpha = 0.0
             self.lyricsView.alpha = 1.0
         }
     }
@@ -668,18 +827,26 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         UIView.animate(withDuration: 0.3) {
             self.slider.alpha = 0.05
             if (showPowerIcon) {
-                self.powerOnIcon.alpha = 0.35
+                self.powerOnIcon.alpha = 0.2
             }
         }
     }
     
+    func fadeOutText(duration: TimeInterval = 0.5, delay: TimeInterval = 0)
+    {
+        UIView.animate(withDuration: duration, delay: delay, options: .curveEaseIn, animations: {
+            self.shineLabel.alpha = 0.0
+        }, completion: nil)
+    }
+    
     func animateTextChange(_ text: String?, completion: (()->Void)?)
     {
+        shineLabel.alpha = 1.0
         queuedText = text
         queuedCompletion = completion
         if !shineLabel.isShining {
             if shineLabel.isVisible {
-                shineLabel.fadeOut {
+                shineLabel.fade {
                     if let qText = self.queuedText {
                         self.shineLabel.text = qText
                         self.shineLabel.shine(completion: self.queuedCompletion)
@@ -694,6 +861,23 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
                 queuedText = nil
                 queuedCompletion = nil
             }
+        }
+    }
+    
+    // MARK:  Helpers
+    
+    @discardableResult func loadWallpaperRefs(songId: String) -> [ImageRef] {
+        if let wallpaperRefs = diskCatalog.loadWallpaper(name: songId) {
+            wallpaperImagesDataSource = ImageCellDataSource(view: wallpaperCollectionView, imageRefs: wallpaperRefs)
+            return wallpaperRefs
+        } else {
+            let randomNumber = Int.random(in: 0..<defaultAlbumRefList.count)
+            let image1 = defaultAlbumRefList[randomNumber]
+            let image2 = defaultAlbumRefList[(randomNumber + Int.random(in: 1..<(defaultAlbumRefList.count-1))) % defaultAlbumRefList.count]
+            let imageRefs = [image1, image2]
+            wallpaperImagesDataSource = ImageCellDataSource(view: wallpaperCollectionView, imageRefs: imageRefs)
+            diskCatalog.saveWallpaper(name: songId, imageRefs: imageRefs)
+            return imageRefs
         }
     }
     

@@ -9,60 +9,60 @@ import Foundation
 import Disk
 
 class DiskCatalog {
+    let simulateFreshInstall = true
     weak var controller: ViewController?
     
     init(controller: ViewController) {
         self.controller = controller
     }
     
-    func saveAlbum(imageRefs: [ImageRef]) -> Bool {
+    @discardableResult func saveAlbum(imageRefs: [ImageRef]) -> Bool {
         do {
             try Disk.save(imageRefs, to: .documents, as: "album.json")
             return true
         } catch let error as NSError {
             showAlert(title: "Fail to save album.", error: error)
-            print(error.localizedDescription)
             return false
         }
     }
     
     func loadAlbum() -> [ImageRef]? {
-        return try? Disk.retrieve("album.json", from: .documents, as: [ImageRef].self)
+        return simulateFreshInstall ? nil : try? Disk.retrieve("album.json", from: .documents, as: [ImageRef].self)
     }
     
-    func saveWallpaper(name: String, imageRefs: [ImageRef]) -> Bool {
+    @discardableResult func saveWallpaper(name: String, imageRefs: [ImageRef]) -> Bool {
         do {
             try Disk.save(imageRefs, to: .documents, as: "Wallpapers/\(name)")
             return true
         } catch let error as NSError {
             showAlert(title: "Fail to save wallpaper.", error: error)
-            print(error.localizedDescription)
             return false
         }
     }
     
     func loadWallpaper(name: String) -> [ImageRef]? {
-        return try? Disk.retrieve("Wallpapers/\(name)", from: .documents, as: [ImageRef].self)
+        return simulateFreshInstall ? nil : try? Disk.retrieve("Wallpapers/\(name)", from: .documents, as: [ImageRef].self)
     }
     
-    func saveImage(name: String, image: UIImage) -> Bool {
+    @discardableResult func saveImage(name: String, image: UIImage) -> Bool {
         do {
             try Disk.save(image, to: .documents, as: "Images/\(name)")
             return true
         } catch let error as NSError {
-            print(error.localizedDescription)
             showAlert(title: "Fail to upload image.", error: error)
             return false
         }
     }
     
     func existsImage(name: String) -> Bool {
-        return Disk.exists("Images/\(name)", in: .documents)
+        return simulateFreshInstall ? false : Disk.exists("Images/\(name)", in: .documents)
     }
     
-    func deleteImage(relativePath: String) -> Bool {
+    @discardableResult func deleteImage(relativePath: String) -> Bool {
         do {
-            try Disk.remove(relativePath, from: .documents)
+            if !relativePath.starts(with: "WP_") {
+                try Disk.remove(relativePath, from: .documents)
+            }
             return true
         } catch let error as NSError {
             showAlert(title: "Fail to delete image.", error: error)
@@ -70,12 +70,34 @@ class DiskCatalog {
         }
     }
     
+    func loadCandidate(song: String?, singer: String?, durationInMs: Int) -> Candidate? {
+        let songStr = song ?? ""
+        let singerStr = singer ?? ""
+        let id = "\(songStr) ~ \(singerStr) ~ \(durationInMs).lrc"
+        return simulateFreshInstall ? nil : try? Disk.retrieve("Candidates/\(id)", from: .caches, as: Candidate.self)
+    }
+    
+    @discardableResult func saveCandidate(song: String?, singer: String?, durationInMs: Int, candidate: Candidate) -> Bool {
+        let songStr = song ?? ""
+        let singerStr = singer ?? ""
+        let id = "\(songStr) ~ \(singerStr) ~ \(durationInMs).lrc"
+        do {
+            try Disk.save(candidate, to: .caches, as: "Candidates/\(id)")
+            return true
+        } catch let error as NSError {
+            showAlert(title: "Fail to save lyrics.", error: error)
+            return false
+        }
+    }
+    
     func listFiles(at: String) -> [URL]? {
-        return try? FileManager.default.contentsOfDirectory(at: URL.urlInDocumentsDirectory(with: at), includingPropertiesForKeys: nil)
+        return simulateFreshInstall ? nil : try? FileManager.default.contentsOfDirectory(at: URL.urlInDocumentsDirectory(with: at), includingPropertiesForKeys: nil)
     }
     
     func showAlert(title: String, error: NSError) {
         let alertController = UIAlertController(title: title, message: error.localizedDescription, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
         self.controller!.present(alertController, animated: true, completion: nil)
+        print(error.localizedDescription)
     }
 }

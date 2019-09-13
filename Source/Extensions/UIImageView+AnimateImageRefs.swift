@@ -60,29 +60,32 @@ final class ImageRef: NSObject, Codable, NSItemProviderReading, NSItemProviderWr
 
 
 extension UIImage {
-    static func loadImageRef(imageRef: ImageRef) -> UIImage? {
-        if imageRef.path.starts(with: "Images/") {
-            return UIImage(contentsOfFile: URL.urlInDocumentsDirectory(with: imageRef.path).path)
+    static func loadImageRef(imageRef: ImageRef?) -> UIImage? {
+        if let imageRef=imageRef {
+            if imageRef.path.starts(with: "Images/") {
+                return UIImage(contentsOfFile: URL.urlInDocumentsDirectory(with: imageRef.path).path)
+            } else {
+                return UIImage(named: "\(imageRef.path)")
+            }
         } else {
-            return UIImage(named: "\(imageRef.path)")
+            return nil
         }
     }
 }
 
 extension UIImageView {
-    func animateImageRefs(next: @escaping (() -> ImageRef?)) {
+    func animateImageRefs(next: @escaping (() -> ImageRef?), nextImage: UIImage? = nil, nextImageRef: ImageRef? = nil) {
         self.layer.removeAllAnimations()
-        let imageRef = next()
+        let imageRef = nextImageRef ?? next()
+        let image = nextImage ?? UIImage.loadImageRef(imageRef: imageRef)
         let duration = TimeInterval(imageRef?.durationInSeconds ?? (imageRef != nil ? 20.0 : 5.0)) - 2.0
         UIView.transition(with: self, duration: 2.0, options: .transitionCrossDissolve, animations: {
-            if imageRef != nil {
-                self.image = UIImage.loadImageRef(imageRef: imageRef!)
-            } else {
-                self.image = nil
-            }
+            self.image = image
         }, completion: { value in
+            let nextImageRef = next()
+            let nextImage = UIImage.loadImageRef(imageRef: nextImageRef)
             DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                self.animateImageRefs(next: next)
+                self.animateImageRefs(next: next, nextImage: nextImage, nextImageRef: nextImageRef)
             }
         })
     }

@@ -61,29 +61,33 @@ class MetalImageView: MTKView
         rpd.colorAttachments[0].loadAction = .clear
         rpd.colorAttachments[0].clearColor = MTLClearColorMake(1, 0, 0, 0.5)
         
-        let commandBuffer = MetalImageView.commandQueue!.makeCommandBuffer()!
-        
-        let bounds = CGRect(origin: CGPoint.zero, size: drawableSize)
-        
-        let originX = image.extent.origin.x
-        let originY = image.extent.origin.y
-        
-        let scaleX = drawableSize.width / image.extent.width
-        let scaleY = drawableSize.height / image.extent.height
-        let scale = min(scaleX, scaleY)
-        
-        let scaledImage = image
-            .transformed(by: CGAffineTransform(translationX: -originX, y: -originY))
-            .transformed(by: CGAffineTransform(scaleX: scale, y: scale))
-        
-        MetalImageView.ciContext!.render(scaledImage,
-                         to: targetTexture,
-                         commandBuffer: commandBuffer,
-                         bounds: bounds,
-                         colorSpace: colorSpace)
-        
-        commandBuffer.present(currentDrawable!)
-        
-        commandBuffer.commit()
+        if let commandBuffer = MetalImageView.commandQueue?.makeCommandBuffer(),
+            let drawable = currentDrawable,
+            let ciContext = MetalImageView.ciContext
+        {
+            let bounds = CGRect(origin: CGPoint.zero, size: drawableSize)
+            
+            let originX = image.extent.origin.x
+            let originY = image.extent.origin.y
+            
+            let scaleX = drawableSize.width / image.extent.width
+            let scaleY = drawableSize.height / image.extent.height
+            let scale = min(scaleX, scaleY)
+            
+            let scaledImage = image
+                .transformed(by: CGAffineTransform(translationX: -originX, y: -originY))
+                .transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+            
+            
+            commandBuffer.present(drawable)
+            
+            ciContext.render(scaledImage,
+                             to: targetTexture,
+                             commandBuffer: commandBuffer,
+                             bounds: bounds,
+                             colorSpace: colorSpace)
+            
+            commandBuffer.commit()
+        }
     }
 }
