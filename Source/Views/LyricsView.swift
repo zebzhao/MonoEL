@@ -145,10 +145,7 @@ open class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
         }
         
         guard let index = lyrics.firstIndex(where: { $0.time >= time }) else {
-            // when no lyric is before the time passed in means scrolling to the first
-            if (lyricsViewModels.count > 0) {
-                scrollToRow(at: IndexPath(row: lyrics.count - 1, section: 0), at: .middle, animated: animated)
-            }
+            // when no lyric is before the time passed
             return
         }
         
@@ -161,9 +158,20 @@ open class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
         }
         
         if index > 0 {
-            lyricsViewModels[index - 1].highlighted = true
-            scrollToRow(at: IndexPath(row: index - 1, section: 0), at: .middle, animated: animated)
+            let rowRect = self.rectForRow(at: IndexPath(row: index - 1, section: 0))
+            let point = CGPoint(x: 0, y: max(0, rowRect.minY - self.visibleSize.height/2 + 30))
+            var delay: TimeInterval = 0
+            if index > 1 {
+                if (lyrics[index - 1].time - lyrics[index - 2].time) < 0.7 {
+                    delay = 0.3
+                }
+            }
+            UIView.animate(withDuration: 0.38, delay: delay, options: .curveLinear, animations: {
+                self.setContentOffset(point, animated: false)
+                self.lyricsViewModels[index - 1].highlighted = true
+            }, completion: nil)
             lastIndex = index - 1
+            //scrollToRow(at: IndexPath(row: index - 1, section: 0), at: .middle, animated: animated)
         }
     }
 }
@@ -278,7 +286,7 @@ internal class LyricsCellViewModel {
         self.textColor = textColor
         self.highlightedTextColor = highlightedTextColor
         self.paragraphStyle.firstLineHeadIndent = 0
-        self.paragraphStyle.headIndent = 12
+        self.paragraphStyle.headIndent = 32
         update()
     }
     

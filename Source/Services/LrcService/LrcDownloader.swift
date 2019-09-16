@@ -43,9 +43,11 @@ class LrcSource {
     }
     
     func request(song: String?, singer: String?, durationInMs: Int?, complete: @escaping (Candidate?)->Void) {
+        print(searchUrl(song: song, singer: singer, durationInMs: durationInMs))
         AF.request(searchUrl(song: song, singer: singer, durationInMs: durationInMs), parameters: searchParameters(song: song, singer: singer, durationInMs: durationInMs))
             .validate(statusCode: [200])
             .responseJSON { resp in
+                print(resp.debugDescription)
                 switch resp.result {
                 case .success:
                     if let json = resp.value as? [String: Any],
@@ -54,7 +56,6 @@ class LrcSource {
                         print("LU", lyricUrl)
                         let lyricRequest = AF.request(lyricUrl, parameters: self.lyricParameters(bestCandidate: bestCandidate))
                             .validate(statusCode: [200])
-                        
                         switch self.lyricFormat {
                         case .json:
                             lyricRequest.responseJSON { resp in

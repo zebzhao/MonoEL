@@ -28,6 +28,15 @@
 		FD47B10A2311BE8D0006BEC0 /* round_mic.svg in Resources */ = {isa = PBXBuildFile; fileRef = FD47B1092311BE8D0006BEC0 /* round_mic.svg */; };
 		FD47B10C2312F2600006BEC0 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */; };
 		FD47B112231E138E0006BEC0 /* LrcDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD47B111231E138E0006BEC0 /* LrcDownloader.swift */; };
+		FD4BA915232F39BA00F11852 /* Array+RandomPick.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4BA914232F39BA00F11852 /* Array+RandomPick.swift */; };
+		FD4E4E2E23298F0A00D7AD54 /* SwiftSiriWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4E4E2D23298F0A00D7AD54 /* SwiftSiriWaveformView.swift */; };
+		FD4E4E302329EAD800D7AD54 /* LyricsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4E4E2F2329EAD800D7AD54 /* LyricsParser.swift */; };
+		FD4E4E322329EAFC00D7AD54 /* LyricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4E4E312329EAFC00D7AD54 /* LyricsView.swift */; };
+		FD4E4E342329FE5600D7AD54 /* GecimiRelaxSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4E4E332329FE5600D7AD54 /* GecimiRelaxSource.swift */; };
+		FD4E4E36232B35A400D7AD54 /* ShineLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4E4E35232B35A400D7AD54 /* ShineLabel.swift */; };
+		FD51951A23247B71001230C7 /* NetEaseSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD51951923247B71001230C7 /* NetEaseSource.swift */; };
+		FD5426D623273985006B2834 /* GecimiSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5426D523273985006B2834 /* GecimiSource.swift */; };
+		FD5426D8232747FD006B2834 /* MiguSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5426D7232747FD006B2834 /* MiguSource.swift */; };
 		FD946AC822D52411002CD027 /* VSSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946AC722D52411002CD027 /* VSSlider.swift */; };
 		FD946AD022D5268E002CD027 /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD946ACF22D5268E002CD027 /* aubio.framework */; };
 		FD946ADC22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */; };
@@ -68,6 +77,15 @@
 		FD47B1092311BE8D0006BEC0 /* round_mic.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = round_mic.svg; sourceTree = "<group>"; };
 		FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
 		FD47B111231E138E0006BEC0 /* LrcDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LrcDownloader.swift; sourceTree = "<group>"; };
+		FD4BA914232F39BA00F11852 /* Array+RandomPick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+RandomPick.swift"; sourceTree = "<group>"; };
+		FD4E4E2D23298F0A00D7AD54 /* SwiftSiriWaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftSiriWaveformView.swift; sourceTree = "<group>"; };
+		FD4E4E2F2329EAD800D7AD54 /* LyricsParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsParser.swift; sourceTree = "<group>"; };
+		FD4E4E312329EAFC00D7AD54 /* LyricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsView.swift; sourceTree = "<group>"; };
+		FD4E4E332329FE5600D7AD54 /* GecimiRelaxSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GecimiRelaxSource.swift; sourceTree = "<group>"; };
+		FD4E4E35232B35A400D7AD54 /* ShineLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShineLabel.swift; sourceTree = "<group>"; };
+		FD51951923247B71001230C7 /* NetEaseSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetEaseSource.swift; sourceTree = "<group>"; };
+		FD5426D523273985006B2834 /* GecimiSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GecimiSource.swift; sourceTree = "<group>"; };
+		FD5426D7232747FD006B2834 /* MiguSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiguSource.swift; sourceTree = "<group>"; };
 		FD946AC722D52411002CD027 /* VSSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VSSlider.swift; sourceTree = "<group>"; };
 		FD946ACF22D5268E002CD027 /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = Libs/aubio.framework; sourceTree = "<group>"; };
 		FD946ADB22E20931002CD027 /* UIBezierPath+scaleAroundCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBezierPath+scaleAroundCenter.swift"; sourceTree = "<group>"; };
@@ -152,6 +170,18 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		FD51951823230602001230C7 /* LrcService */ = {
+			isa = PBXGroup;
+			children = (
+				FD47B111231E138E0006BEC0 /* LrcDownloader.swift */,
+				FD51951923247B71001230C7 /* NetEaseSource.swift */,
+				FD5426D523273985006B2834 /* GecimiSource.swift */,
+				FD5426D7232747FD006B2834 /* MiguSource.swift */,
+				FD4E4E332329FE5600D7AD54 /* GecimiRelaxSource.swift */,
+			);
+			path = LrcService;
+			sourceTree = "<group>";
+		};
 		FD946ACC22D52636002CD027 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
@@ -168,10 +198,13 @@
 		FD946AD122E10423002CD027 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				FD4E4E312329EAFC00D7AD54 /* LyricsView.swift */,
+				FD4E4E2D23298F0A00D7AD54 /* SwiftSiriWaveformView.swift */,
 				FD946AC722D52411002CD027 /* VSSlider.swift */,
 				FD0EDB0B22AED5F60035673C /* MetalImageView.swift */,
 				FD946AEB22E4B1AD002CD027 /* BlurIconView.swift */,
 				FD9FE1FA22E738370037D1D1 /* ImageCell.swift */,
+				FD4E4E35232B35A400D7AD54 /* ShineLabel.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -196,12 +229,13 @@
 		FD946AD422E104BD002CD027 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				FD51951823230602001230C7 /* LrcService */,
 				FD0EDB1B22C6A4040035673C /* RxMediaPicker.swift */,
 				FD0EDB0922AB496B0035673C /* RecordAudio.swift */,
+				FD4E4E2F2329EAD800D7AD54 /* LyricsParser.swift */,
 				FD47B0FB22FA6D5B0006BEC0 /* DiskCatalog.swift */,
 				FD47B0FD230BB2A10006BEC0 /* DateUtil.swift */,
 				FD47B10723102BA80006BEC0 /* AveragingBuffer.swift */,
-				FD47B111231E138E0006BEC0 /* LrcDownloader.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -224,6 +258,7 @@
 				FD47B101230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift */,
 				FD47B103230ED0120006BEC0 /* UIImage+FixOrientation.swift */,
 				FD47B10B2312F2600006BEC0 /* UIColor+Hex.swift */,
+				FD4BA914232F39BA00F11852 /* Array+RandomPick.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -337,24 +372,16 @@
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/Disk/Disk.framework",
 				"${BUILT_PRODUCTS_DIR}/KDCircularProgress/KDCircularProgress.framework",
-				"${BUILT_PRODUCTS_DIR}/MarqueeLabel/MarqueeLabel.framework",
 				"${BUILT_PRODUCTS_DIR}/PocketSVG/PocketSVG.framework",
-				"${BUILT_PRODUCTS_DIR}/RQShineLabel/RQShineLabel.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
-				"${BUILT_PRODUCTS_DIR}/SoundWave/SoundWave.framework",
-				"${BUILT_PRODUCTS_DIR}/SpotlightLyrics/SpotlightLyrics.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Disk.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KDCircularProgress.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MarqueeLabel.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PocketSVG.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RQShineLabel.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SoundWave.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SpotlightLyrics.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -378,16 +405,25 @@
 				FD946AF622E4FC38002CD027 /* UILabel+Fade.swift in Sources */,
 				FD47B10823102BA80006BEC0 /* AveragingBuffer.swift in Sources */,
 				FD0EDB0A22AB496B0035673C /* RecordAudio.swift in Sources */,
+				FD4E4E342329FE5600D7AD54 /* GecimiRelaxSource.swift in Sources */,
 				FD47B112231E138E0006BEC0 /* LrcDownloader.swift in Sources */,
+				FD51951A23247B71001230C7 /* NetEaseSource.swift in Sources */,
 				FD9FE1FB22E738370037D1D1 /* ImageCell.swift in Sources */,
 				FD47B104230ED0120006BEC0 /* UIImage+FixOrientation.swift in Sources */,
 				FD47B102230CFCDF0006BEC0 /* UIImageView+AnimateImageRefs.swift in Sources */,
+				FD4BA915232F39BA00F11852 /* Array+RandomPick.swift in Sources */,
 				FD47B0FC22FA6D5B0006BEC0 /* DiskCatalog.swift in Sources */,
+				FD5426D8232747FD006B2834 /* MiguSource.swift in Sources */,
 				FD47B10C2312F2600006BEC0 /* UIColor+Hex.swift in Sources */,
+				FD4E4E322329EAFC00D7AD54 /* LyricsView.swift in Sources */,
 				FD0EDAFC22A5AFED0035673C /* Kernel.metal in Sources */,
+				FD4E4E302329EAD800D7AD54 /* LyricsParser.swift in Sources */,
 				FD946AEC22E4B1AD002CD027 /* BlurIconView.swift in Sources */,
+				FD4E4E2E23298F0A00D7AD54 /* SwiftSiriWaveformView.swift in Sources */,
 				3E4A19491C8F1948006032BC /* AppDelegate.swift in Sources */,
 				FD47B0FE230BB2A10006BEC0 /* DateUtil.swift in Sources */,
+				FD4E4E36232B35A400D7AD54 /* ShineLabel.swift in Sources */,
+				FD5426D623273985006B2834 /* GecimiSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

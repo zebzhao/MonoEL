@@ -23,50 +23,54 @@ class ShineLabel: UILabel {
     var autoStart: Bool = false
     var isShining : Bool {
         get {
-            return !(self.displaylink!.isPaused)
+            return !self.displaylink!.isPaused
         }
     }
     var isVisible : Bool {
         get {
-            return (self.fadeOut == false)
+            return self.isFadedOut == false
         }
     }
     
-    private var attributedString: NSMutableAttributedString?
-    private var characterAnimationDurtions = [CFTimeInterval]()
+    private var attributedStringCopy: NSMutableAttributedString?
+    private var characterAnimationDurations = [CFTimeInterval]()
     private var characterAnimationDelays = [CFTimeInterval]()
     private var displaylink: CADisplayLink?
     private var beginTime: CFTimeInterval = 0
-    private var endTime: CFTimeInterval = 0
-    private var fadeOut: Bool
+    private var isFadedOut: Bool
     private var completion: (() -> Void)?
+    private var textCopy: String?
     
     override internal var text: String? {
         set {
-            super.text = newValue
-            attributedText = NSMutableAttributedString(string: newValue!)
-            
+            textCopy = newValue
+            if let value=newValue {
+                self.attributedText = NSMutableAttributedString(string: value)
+            } else {
+                self.attributedText = nil
+            }
         }
         get {
-            return super.text
+            return textCopy
         }
     }
     
     override internal var attributedText: NSAttributedString? {
         set {
-            attributedString = self.initialAttributedString(attributedString: newValue)
-            super.attributedText = newValue
+            attributedStringCopy = self.initialAttributedString(attributedString: newValue)
+            super.attributedText = attributedStringCopy
             
-            for index in 0...newValue!.length - 1 {
-                let delay = Double(arc4random_uniform(UInt32(shineDuration / 2 * 100))) / 100.0
-                characterAnimationDelays.insert(delay, at: index)
-                let remain = shineDuration - delay
-                //                characterAnimationDurtions[index] = Double(arc4random_uniform(UInt32(remain * 100))) / 100.0
-                characterAnimationDurtions.insert(Double(arc4random_uniform(UInt32(remain * 100))) / 100.0, at: index)
+            if let stringValue = attributedStringCopy {
+                for index in 0..<stringValue.length {
+                    let delay = Double(arc4random_uniform(UInt32(shineDuration / 2 * 100))) / 100.0
+                    characterAnimationDelays.insert(delay, at: index)
+                    let remain = shineDuration - delay
+                    characterAnimationDurations.insert(Double(arc4random_uniform(UInt32(remain * 100))) / 100.0, at: index)
+                }
             }
         }
         get {
-            return super.attributedText
+            return attributedStringCopy
         }
     }
     convenience init() {
@@ -77,17 +81,25 @@ class ShineLabel: UILabel {
         shineDuration = 2.5
         fadeoutDuration = 2.5
         autoStart = false
-        fadeOut = true
-        
+        isFadedOut = true
         super.init(frame: frame)
+        initSelf()
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        shineDuration = 2.5
+        fadeoutDuration = 2.5
+        autoStart = false
+        isFadedOut = true
+        super.init(coder: aDecoder)
+        initSelf()
+    }
+    
+    private func initSelf() {
         self.textColor = UIColor.white
         displaylink = CADisplayLink(target: self, selector:#selector(updateAttributedString))
         displaylink!.isPaused = true
         displaylink!.add(to: .current, forMode: .common)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
     
     override func didMoveToWindow() {
@@ -98,33 +110,29 @@ class ShineLabel: UILabel {
     
     @objc internal func updateAttributedString() {
         let now = CACurrentMediaTime()
-        for index in 0...attributedString!.length - 1 {
-            //            let indexString = attributedString!.string.characters(index)
-            //            NSCharacterSet.whitespaceCharacterSet().characterIsMember(indexString) {
-            //                continue
-            //            }
+        for index in 0...attributedStringCopy!.length - 1 {
             
-            attributedString!.enumerateAttribute(NSAttributedString.Key.foregroundColor, in: NSMakeRange(index, 1), options: NSAttributedString.EnumerationOptions(rawValue: 0), using: { (value, range, stop) in
+            attributedStringCopy!.enumerateAttribute(NSAttributedString.Key.foregroundColor, in: NSMakeRange(index, 1), options: NSAttributedString.EnumerationOptions(rawValue: 0), using: { (value, range, stop) in
                 
-                let currentAlpha = (value as AnyObject).cgColor?.alpha ?? 0
-                let checkAlpha = (self.fadeOut && (currentAlpha > 0)) || (!self.fadeOut && (currentAlpha < 1))
+                let currentAlpha = (value as AnyObject).cgColor?.alpha ?? 1.0
+                let checkAlpha = (self.isFadedOut && (currentAlpha > 0)) || (!self.isFadedOut && (currentAlpha < 1))
                 let shouldUpdateAlpha : Bool = checkAlpha || (now - self.beginTime) >= self.characterAnimationDelays[index]
                 if !shouldUpdateAlpha {
                     return
                 }
                 
-                var percentage = (now - self.beginTime - self.characterAnimationDelays[index]) / (self.characterAnimationDurtions[index])
-                if (self.fadeOut) {
+                var percentage = (now - self.beginTime - self.characterAnimationDelays[index]) / (self.characterAnimationDurations[index])
+                if (self.isFadedOut) {
                     percentage = 1 - percentage
                 }
                 
                 let color = self.textColor.withAlphaComponent(CGFloat(percentage))
-                self.attributedString!.addAttributes([.foregroundColor : color], range: range)
+                self.attributedStringCopy!.addAttributes([.foregroundColor : color], range: range)
             })
         }
         
-        super.attributedText = attributedString
-        if now > endTime {
+        super.attributedText = attributedStringCopy
+        if now > beginTime + shineDuration {
             displaylink!.isPaused = true
             if self.completion != nil {
                 self.completion!()
@@ -146,24 +154,23 @@ class ShineLabel: UILabel {
     }
     
     func shine(completion: (() -> Void)? = nil) {
-        if (!self.isShining) && (self.fadeOut) {
+        if !self.isShining && self.isFadedOut {
             self.completion = completion
-            fadeOut = false
+            isFadedOut = false
             startAnimation(duration: fadeoutDuration)
         }
     }
     
     func fade(completion: (() -> Void)? = nil) {
-        if (!self.isShining) && (!self.fadeOut) {
+        if !self.isShining && !self.isFadedOut {
             self.completion = completion
-            fadeOut = true
+            isFadedOut = true
             startAnimation(duration: fadeoutDuration)
         }
     }
     
     func startAnimation(duration: CFTimeInterval) {
         beginTime = CACurrentMediaTime()
-        endTime = beginTime + shineDuration
         displaylink!.isPaused = false
     }
 }
