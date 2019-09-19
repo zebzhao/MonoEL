@@ -25,6 +25,10 @@ class NetEaseSource: LrcSource {
         ]
     }
     
+    override func searchHeaders(song: String?, singer: String?, durationInMs: Int?) -> HTTPHeaders? {
+        return HTTPHeaders(["Referer": "http://music.163.com/"])
+    }
+    
     override func lyricUrl(bestCandidate: [String : Any]) -> String? {
         return "https://api.imjad.cn/cloudmusic"
     }
@@ -41,6 +45,7 @@ class NetEaseSource: LrcSource {
     }
     
     override func getLyrics(_ lyricResult: [String : Any]) -> String? {
-        return (lyricResult["lrc"] as? [String : Any] ?? [:])["lyric"] as? String
+        let rawLyric = (lyricResult["lrc"] as? [String : Any] ?? [:])["lyric"] as? String
+        return String(describing: rawLyric?.cString(using: .utf8))
     }
 }

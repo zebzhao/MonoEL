@@ -20,6 +20,7 @@ class Song {
     let artist: String?
     let duration: Int?
     let lyrics: String?
+    let nowPlaying: Bool
     
     var id: String {
         get {
@@ -33,15 +34,16 @@ class Song {
         }
     }
     
-    init(title: String?, artist: String?, duration: Int?, lyrics: String?) {
+    init(title: String?, artist: String?, duration: Int?, lyrics: String?, nowPlaying: Bool) {
         self.title = title
         self.artist = artist
         self.duration = duration
         self.lyrics = lyrics
+        self.nowPlaying = nowPlaying
     }
 }
 
-class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate, RxMediaPickerDelegate
+class ViewController: UIViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate, RxMediaPickerDelegate, LyricsViewTimerDelegate
 {
     @IBOutlet var imageViewContainer: UIView!
     @IBOutlet var imageView: MetalImageView!
@@ -61,12 +63,13 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     @IBOutlet var detectView: UIView!
     @IBOutlet var lyricsView: UIView!
     @IBOutlet var songTitleLabel: UILabel!
+    @IBOutlet var playbackTimeLabel: UILabel!
     @IBOutlet var scrollingLyricsView: LyricsView!
     @IBOutlet var scrollingLyricsViewContainer: UIView!
     
     let disposeBag = DisposeBag()
     let recordAudio = RecordAudio()
-    let lrcDownloader = LrcDownloader([MiguSource(), NetEaseSource(), GecimiSource(), GecimiRelaxSource()])
+    let lrcDownloader = LrcDownloader([KugouSource(), MiguSource(), NetEaseSource(), GecimiSource()])
     let greeting1 = ["嗨! 動動", "Hi⁓", "嘿⁓", "Hey, hey, beautiful!", "Heya!", "嘿嘿, 美丽的", "Yo, over here!", "Hola⁓", "你好!", "Aloha Kakahiaka!"]
     let greeting2 = ["Sing a song!", "Say something...", "好久不见!", "Welcome back!", "Play with me!", "Missed you angel⁓", "Looking beautiful as always!", "好聽, 好聽!",
                      "Long time no see!", "Play me a song!", "Gimme some music!", "發一首歌 DJ!", "來一首歌!"]
@@ -139,6 +142,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         setupCurrentSongSubject()
         setupMusicPlayer()
         setupLyricsView()
+        setUpBackground()
         
         // Default screen
         enterDetectView(detectOn: false)
@@ -245,7 +249,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
 //                    [04:06.91]我的了解让我自由
 //                    [04:12.30]
 //
-//                    """))
+//                    """, nowPlaying: false))
 //        }
     }
     
@@ -282,11 +286,14 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         if let nowPlayingItem = player.nowPlayingItem, let title = nowPlayingItem.title {
             let durationInMs = Int(nowPlayingItem.playbackDuration*1000)
             if let candidate = diskCatalog.loadCandidate(song: title, singer: nowPlayingItem.artist, durationInMs: durationInMs) {
-                self.currentSongSubject.onNext(Song(title: candidate.song, artist: candidate.singer, duration: candidate.duration, lyrics: candidate.lyrics))
+                self.currentSongSubject.onNext(Song(title: candidate.song, artist: candidate.singer, duration: candidate.duration, lyrics: candidate.lyrics, nowPlaying: true))
             } else {
-                lrcDownloader.getLyrics(song: title, singer: nowPlayingItem.artist, durationInMs: durationInMs, complete: { (candidate) in
+                enterDetectView(detectOn: false, progressOn: true)
+                lrcDownloader.getLyrics(song: title, singer: nowPlayingItem.artist, durationInMs: durationInMs, progress: { progressData in
+                    self.progressBar.animate(toAngle: Double(360*progressData.progress), duration: TimeInterval(progressData.errors + 1)*0.5, completion: nil)
+                }, complete: { (candidate) in
                     if let can=candidate {
-                        self.currentSongSubject.onNext(Song(title: can.song, artist: can.singer, duration: can.duration, lyrics: can.lyrics))
+                        self.currentSongSubject.onNext(Song(title: can.song, artist: can.singer, duration: can.duration, lyrics: can.lyrics, nowPlaying: true))
                         if can.lyrics != nil {
                             self.diskCatalog.saveCandidate(song: title, singer: nowPlayingItem.artist, durationInMs: durationInMs, candidate: can)
                         }
@@ -306,28 +313,28 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         case .playing:
             let songTitle = try? currentSongSubject.value()?.title
             if let nowPlayingItemTitle = player.nowPlayingItem?.title {
-                print("playing", songTitle, nowPlayingItemTitle, songTitle == nowPlayingItemTitle)
                 if songTitle != nowPlayingItemTitle {
                     updateNowPlayingItem()
                     updatePlayingItem = true
                 }
             }
-            scrollingLyricsView.timer.seek(toTime: player.currentPlaybackTime)
-            scrollingLyricsView.timer.play()
         case .seekingBackward:
             scrollingLyricsView.timer.seek(toTime: player.currentPlaybackTime)
         case .seekingForward:
             scrollingLyricsView.timer.seek(toTime: player.currentPlaybackTime)
         case .stopped:
             scrollingLyricsView.timer.pause()
-            scrollingLyricsView.timer.seek(toTime: 0)
         case .interrupted:
             scrollingLyricsView.timer.pause()
-            scrollingLyricsView.timer.seek(toTime: 0)
         @unknown default:
             scrollingLyricsView.timer.pause()
         }
         return updatePlayingItem
+    }
+    
+    private func seekAndPlay() {
+        scrollingLyricsView.timer.seek(toTime: player.currentPlaybackTime)
+        scrollingLyricsView.timer.play()
     }
     
     @objc private func nowPlayingItemIsChanged(notification: NSNotification){
@@ -555,6 +562,16 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         })
     }
     
+    func lyricTimerDidSetElapsedTime(elapsedTime: TimeInterval) {
+        if playbackTimeLabel.alpha != 0 && scrollingLyricsView.isScrollEnabled {
+            let formatter = DateComponentsFormatter()
+            formatter.unitsStyle = .positional
+            formatter.allowedUnits = [ .minute, .second ]
+            formatter.zeroFormattingBehavior = [ .pad ]
+            playbackTimeLabel.text = formatter.string(from: elapsedTime)
+        }
+    }
+    
     // MARK:  Setup
     
     func setupMusicPlayer() {
@@ -584,9 +601,20 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         view.insertSubview(shineLabel, belowSubview: blurView)
     }
     
+    func setUpBackground() {
+        backgroundImageView.animateImageRefs(next: { () -> ImageRef? in
+            let imageRefs = self.wallpaperImagesDataSource.imageRefs // Tricky: as this might be reassigned
+            let wallpaperIndex = self.wallpaperIndex >= imageRefs.count ? 0 : self.wallpaperIndex
+            let imageRef = imageRefs.indices.contains(wallpaperIndex) ? imageRefs[wallpaperIndex] : nil
+            self.wallpaperIndex = wallpaperIndex + 1
+            return imageRef
+        })
+    }
+    
     func setupCurrentSongSubject() {
         currentSongSubject.subscribe({ (event) in
-            let songId = event.element??.id ?? "default"
+            let song = event.element
+            let songId = song??.id ?? "default"
             let wallpaperRefs = self.loadWallpaperRefs(songId: songId)
             self.wallpaperIndex = 0
             self.wallpaperImagesDataSource.imageRefs = wallpaperRefs
@@ -600,14 +628,9 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
                 })
             })
             self.scrollingLyricsView.lyrics = event.element??.lyrics
-            self.backgroundImageView.animateImageRefs(next: { () -> ImageRef? in
-                let imageRefs = self.wallpaperImagesDataSource.imageRefs // Tricky: as this might be reassigned
-                let wallpaperIndex = self.wallpaperIndex >= imageRefs.count ? 0 : self.wallpaperIndex
-                let imageRef = imageRefs.indices.contains(wallpaperIndex) ? imageRefs[wallpaperIndex] : nil
-                self.wallpaperIndex = wallpaperIndex + 1
-                return imageRef
-            })
-            self.scrollingLyricsView.timer.play()
+            if song != nil {
+                self.seekAndPlay()
+            }
             self.enterHomeScreen()
         })
             .disposed(by: disposeBag)
@@ -617,6 +640,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         songTitleLabel.backgroundColor = UIColor.clear
         songTitleLabel.font = UIFont(name: "HelveticaNeue-Light", size: 25.0)
         songTitleLabel.textAlignment = .left
+        playbackTimeLabel.alpha = 0
         scrollingLyricsView.lyricFont = UIFont.systemFont(ofSize: 25)
         scrollingLyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.5)
         scrollingLyricsView.lyricHighlightedFont = UIFont.systemFont(ofSize: 25)
@@ -624,6 +648,7 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
         scrollingLyricsView.backgroundColor = UIColor.clear
         scrollingLyricsView.lineSpacing = 25
         scrollingLyricsViewContainer.layer.mask = createScrollingLyricViewGradient()
+        scrollingLyricsView.timer.delegate = self
     }
     
     func setUpPhotoView() {
@@ -764,21 +789,22 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     func enterLyricView()
     {
+        self.powerOnIcon.image = UIImage(named: "Pause")
         UIView.animate(withDuration: 0.5, animations: {
             self.shineLabel.alpha = 0.0
             self.lyricsView.alpha = 1.0
-            self.powerOnIcon.image = UIImage(named: "Pause")
+            self.playbackTimeLabel.alpha = 0.0
         }) { (finished) in
-            self.scrollingLyricsView.isScrollEnabled = false
             self.isInLyricMode = true
         }
     }
     
     func exitLyricView()
     {
+        self.powerOnIcon.image = UIImage(named: "PowerOn")
         UIView.animate(withDuration: 0.5, animations: {
             self.lyricsView.alpha = 0.0
-            self.powerOnIcon.image = UIImage(named: "PowerOn")
+            self.playbackTimeLabel.alpha = 0.0
         }) { (finished) in
             self.isInLyricMode = false
         }
@@ -788,19 +814,20 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     {
         let songId = (try? currentSongSubject.value()?.id) ?? "default"
         if songId == "default" {
-            enterDetectView(detectOn: false)
+            enterDetectView()
         } else {
             exitDetectView()
             enterLyricView()
         }
     }
     
-    func enterDetectView(detectOn: Bool = false)
+    func enterDetectView(detectOn: Bool = false, progressOn: Bool = false)
     {
         transitionTimeDelta = 0.005
+        self.progressBar.progress = 0
         UIView.animate(withDuration: 0.5) {
             self.detectView.alpha = 1.0
-            self.progressBar.alpha = detectOn ? 1.0 : 0.0
+            self.progressBar.alpha = progressOn || detectOn ? 1.0 : 0.0
             self.detectIconView.effect = detectOn ? self.detectIconView.activeBlurEffect : .none
         }
     }
@@ -949,16 +976,26 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     
     @IBAction func sliderTouchDown(_ sender: Any) {
         isSliderTouchDown = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            if self.isSliderTouchDown {
-                self.micIconView.show()
-                self.addPhotoIconView.show()
-                self.fadeInSlider()
-                self.detectLabel.fadeIn(toAlpha: 0.5)
-                self.photosLabel.fadeIn(toAlpha: 0.5)
+        if isInLyricMode {
+            slider.isEnabled = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.slider.isEnabled = true
+                if self.isSliderTouchDown {
+                    self.isSliderTouchDown = false
+                    self.micIconView.show()
+                    self.addPhotoIconView.show()
+                    self.fadeInSlider()
+                    self.detectLabel.fadeIn(toAlpha: 0.5)
+                    self.photosLabel.fadeIn(toAlpha: 0.5)
+                }
             }
+        } else {
+            self.micIconView.show()
+            self.addPhotoIconView.show()
+            self.fadeInSlider()
+            self.detectLabel.fadeIn(toAlpha: 0.5)
+            self.photosLabel.fadeIn(toAlpha: 0.5)
         }
-        
     }
     
     @IBAction func uploadImageTouchUpInside(_ sender: Any) {
@@ -985,20 +1022,41 @@ class ViewController: UIViewController, UICollectionViewDragDelegate, UICollecti
     }
     
     @IBAction func sliderTouchUp(_ sender: Any) {
-        if isInLyricMode {
+        if isInLyricMode && isSliderTouchDown {
             self.isSliderTouchDown = false
-            let isScrollEnabled = self.scrollingLyricsView.isScrollEnabled
-            scrollingLyricsView.isScrollEnabled = !isScrollEnabled
-            if scrollingLyricsView.isScrollEnabled {
-                scrollingLyricsView.timer.pause()
-            } else {
-                scrollingLyricsView.timer.play()
-            }
-            UIView.animate(withDuration: 0.5, animations: {
-                if self.isInLyricMode {
-                    self.powerOnIcon.image = UIImage(named: isScrollEnabled ? "Pause" : "Play")
+            if scrollingLyricsView.timer.isPaused {
+                if player.playbackState == .paused {
+                    player.play()
                 }
-            })
+                
+                seekAndPlay()
+                
+                UIView.transition(with: self.powerOnIcon, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                    self.powerOnIcon.image = UIImage(named: "Pause")
+                }, completion: nil)
+                UIView.animate(withDuration: 0.5) {
+                    self.playbackTimeLabel.alpha = 0.0
+                }
+            } else {
+                if player.playbackState == .playing {
+                    player.pause()
+                } else {
+                    scrollingLyricsView.timer.pause()
+                }
+                
+                let formatter = DateComponentsFormatter()
+                formatter.unitsStyle = .positional
+                formatter.allowedUnits = [ .minute, .second ]
+                formatter.zeroFormattingBehavior = [ .pad ]
+                self.playbackTimeLabel.text = formatter.string(from: scrollingLyricsView.timer.elapsedTime)
+                
+                UIView.transition(with: self.powerOnIcon, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                    self.powerOnIcon.image = UIImage(named: "Play")
+                }, completion: nil)
+                UIView.animate(withDuration: 0.5) {
+                    self.playbackTimeLabel.alpha = 0.7
+                }
+            }
         }
     }
 }

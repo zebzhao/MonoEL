@@ -8,6 +8,10 @@
 
 import UIKit
 
+@objc public protocol LyricsViewTimerDelegate {
+    func lyricTimerDidSetElapsedTime(elapsedTime: TimeInterval)
+}
+
 open class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
     
     private var parser: LyricsParser? = nil
@@ -32,6 +36,7 @@ open class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
     
     public var lyrics: String? = nil {
         didSet {
+            lastIndex = 0
             reloadViewModels()
         }
     }
@@ -112,6 +117,34 @@ open class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
         return false
     }
     
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let point = CGPoint(x: 0, y: self.contentOffset.y + self.visibleSize.height/2 - 20)
+        if let index = self.indexPathForRow(at: point)?.row {
+            if index != lastIndex {
+                if let lIndex=lastIndex {
+                    if lIndex < lyricsViewModels.count {
+                        lyricsViewModels[lIndex].highlighted = false
+                    }
+                }
+                lastIndex = index
+                if index < lyricsViewModels.count {
+                    lyricsViewModels[index].highlighted = true
+                    if let lyrics=parser?.lyrics {
+                        if isScrollEnabled && abs(timer.elapsedTime - lyrics[index].time) >= 0.5 {
+                            timer.elapsedTime = lyrics[index].time
+                        }
+                        
+                    }
+                }
+            }
+        } else if let lIndex=lastIndex {
+            if lIndex < lyricsViewModels.count {
+                lyricsViewModels[lIndex].highlighted = false
+            }
+            lastIndex = nil
+        }
+    }
+    
     // MARK:
     
     private func reloadViewModels() {
@@ -153,13 +186,9 @@ open class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
             return
         }
         
-        if let lastIndex = lastIndex {
-            lyricsViewModels[lastIndex].highlighted = false
-        }
-        
         if index > 0 {
             let rowRect = self.rectForRow(at: IndexPath(row: index - 1, section: 0))
-            let point = CGPoint(x: 0, y: max(0, rowRect.minY - self.visibleSize.height/2 + 30))
+            let point = CGPoint(x: 0, y: rowRect.minY - self.visibleSize.height/2 + 30)
             var delay: TimeInterval = 0
             if index > 1 {
                 if (lyrics[index - 1].time - lyrics[index - 2].time) < 0.7 {
@@ -168,9 +197,7 @@ open class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
             }
             UIView.animate(withDuration: 0.38, delay: delay, options: .curveLinear, animations: {
                 self.setContentOffset(point, animated: false)
-                self.lyricsViewModels[index - 1].highlighted = true
             }, completion: nil)
-            lastIndex = index - 1
             //scrollToRow(at: IndexPath(row: index - 1, section: 0), at: .middle, animated: animated)
         }
     }
@@ -349,11 +376,23 @@ public class LyricsItem {
 }
 
 public class LyricsViewTimer {
-    
+    public var elapsedTime: TimeInterval = 0 {
+        didSet {
+            if let delegate=delegate {
+                delegate.lyricTimerDidSetElapsedTime(elapsedTime: elapsedTime)
+            }
+        }
+    }
+    public weak var delegate: LyricsViewTimerDelegate?
     private let TICK_INTERVAL: TimeInterval = 0.1
     private var timer: Timer? = nil
     internal weak var lyricsView: LyricsView? = nil
-    private var eplasedTime: TimeInterval = 0
+    
+    public var isPaused: Bool {
+        get {
+            return timer == nil 
+        }
+    }
     
     // MARK: Controls
     
@@ -361,7 +400,7 @@ public class LyricsViewTimer {
         guard timer == nil else {
             return
         }
-        
+        lyricsView?.isScrollEnabled = false
         timer = Timer.scheduledTimer(timeInterval: TICK_INTERVAL, target: self, selector: #selector(tick), userInfo: nil, repeats: true)
     }
     
@@ -369,21 +408,21 @@ public class LyricsViewTimer {
         guard timer != nil else {
             return
         }
-        
+        lyricsView?.isScrollEnabled = true
         timer?.invalidate()
         timer = nil
     }
     
     public func seek(toTime time: TimeInterval) {
-        eplasedTime = time
+        elapsedTime = time
         lyricsView?.scroll(toTime: time, animated: true)
     }
     
     // MARK: tick
     
     @objc private func tick() {
-        eplasedTime += TICK_INTERVAL
-        seek(toTime: eplasedTime)
+        elapsedTime += TICK_INTERVAL
+        seek(toTime: elapsedTime)
     }
 }
 

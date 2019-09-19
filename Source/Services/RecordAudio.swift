@@ -263,8 +263,8 @@ final class RecordAudio: NSObject {
         out = new_fvec(hopSize)
         tempo = new_aubio_tempo("default", bufferSize, hopSize, samplerate)
         notes = new_aubio_notes("default", bufferSize, hopSize, samplerate)
-        aubio_tempo_set_silence(tempo, -78.0)
-        aubio_notes_set_silence(notes, -78.0)
+        aubio_tempo_set_silence(tempo, -72.0)
+        aubio_notes_set_silence(notes, -72.0)
         aubio_notes_set_release_drop(notes, 18.0)
     }
     
